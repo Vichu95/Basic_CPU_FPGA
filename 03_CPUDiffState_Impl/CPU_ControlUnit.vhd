@@ -2,14 +2,16 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+-- Import user package
+library work;
+use work.Common_P.all;
 
 -- CPU_ControlUnit Entity
 entity CPU_ControlUnit_E is
 
-	port(	CPU_rst			:	in std_logic;
-			CPU_clk			:	in std_logic;
-			CPU_btnNext		:	in std_logic;
-			CPU_opcodRead	:	in std_logic
+	port(	CPU_rst			:	in typ_rst;
+			CPU_clk			:	in typ_clk;
+			CPU_btnNext		:	in typ_in_btn
 			);
 
 
@@ -18,20 +20,16 @@ end entity CPU_ControlUnit_E;
 
 -- CPU_ControlUnit Architecture
 architecture CPU_ControlUnit_A of CPU_ControlUnit_E is
-	--Definitions
-	type CPU_stateEnum is (	CPU_IDLE,
-									CPU_READ_OPCODE,
-									CPU_READ_DATA1,
-									CPU_READ_DATA2,
-									CPU_EXECUTE,
-									CPU_OUTPUT
-									);
-	signal CPU_crntState, CPU_nxtState : CPU_stateEnum;
+
+	signal CPU_crntState, CPU_nxtState : enum_CPU_state;
 	
-	signal CPU_cntrlALU 	: std_logic := '0';	-- CPU control signal to trigger ALU operation
-	signal CPU_cntrlOut 	: std_logic := '0';	-- CPU control signal to trigger Output block
+	signal CPU_cntrlALU 	: typ_cpu_cntrlsig := '0';				-- CPU control signal to trigger ALU operation
+	signal CPU_cntrlOut 	: typ_cpu_cntrlsig := '0';				-- CPU control signal to trigger Output block
 	
-	signal CPU_regA		: natural 	:= 0;		-- ALU calculated output through Accumulator
+	signal CPU_flgALUWait	: typ_cpu_cntrlsig := '0';			-- CPU waiting for completion of ALU operation
+	signal CPU_flgOutputWait: typ_cpu_cntrlsig := '0';			-- CPU waiting for completion of ALU operation
+	
+	signal CPU_regA		: typ_mem_reg 	:= 0;						-- ALU calculated output through Accumulator
 									
 									
 begin
@@ -41,10 +39,20 @@ begin
 	------------
 	
 	-- ALU entity
-	ALU_inst : entity work.ALU_Add_E(ALU_Add_A) port map(CPU_rst, CPU_clk, CPU_cntrlALU, CPU_regA);	
+	ALU_inst : entity work.ALU_Add_E(ALU_Add_A) port map(CPU_rst, CPU_clk, CPU_cntrlALU, CPU_flgALUWait, CPU_regA);	
 	
 	-- Output entity	
-	Output_inst : entity work.Output_E(Output_A) port map(CPU_rst, CPU_clk, CPU_cntrlOut, CPU_regA);	
+	Output_inst : entity work.Output_E(Output_A) 
+	port map(
+		Output_rst				=> CPU_rst,
+		Output_clk				=> CPU_clk,
+		Output_cntrlSigCPU	=> CPU_cntrlOut,
+		Output_regA				=> CPU_regA,
+		Output_stOprtn			=> CPU_flgOutputWait,
+		Output_LED				=> open
+		);
+
+	
 	
 	-- Main state machine which controls next states and control signals
 	CPU_StateFlow:process(CPU_crntState,CPU_btnNext)
@@ -54,39 +62,41 @@ begin
 		case CPU_crntState is
 		
 			when CPU_IDLE =>
-				if(CPU_btnNext = '1') then
+				if(CPU_btnNext = BTN_PRESSED) then
 					CPU_nxtState <= CPU_READ_OPCODE;
-					CPU_cntrlALU <= '0'; -- Reset ALU Operation
-					CPU_cntrlOut <= '0'; -- Reset out Operation
+					CPU_cntrlALU <= CPU_DISABLE; -- Reset ALU Operation
+					CPU_cntrlOut <= CPU_DISABLE; -- Reset out Operation
 				end if;				
 				
 			when CPU_READ_OPCODE =>
 		
-				if(CPU_btnNext = '1') then
+				if(CPU_btnNext = BTN_PRESSED) then
 					CPU_nxtState <= CPU_READ_DATA1;				
 				end if ;
 				
 			when CPU_READ_DATA1 =>
-				if(CPU_btnNext = '1') then
+				if(CPU_btnNext = BTN_PRESSED) then
 					CPU_nxtState <= CPU_READ_DATA2;
 				end if;
 	
 			when CPU_READ_DATA2 =>
-				if(CPU_btnNext = '1') then
+				if(CPU_btnNext = BTN_PRESSED) then
 					CPU_nxtState <= CPU_EXECUTE;
 				end if;
 	
 			when CPU_EXECUTE =>
-				if(CPU_btnNext = '1') then
+				if(CPU_btnNext = BTN_PRESSED) then
 					CPU_nxtState <= CPU_OUTPUT;
-					CPU_cntrlALU <= '1'; -- Trigger ALU Operation
+					
+					CPU_cntrlALU <= CPU_ENABLE; -- Trigger ALU Operation
+					
 				end if;
 	
 			when CPU_OUTPUT =>
-				if(CPU_btnNext = '1') then
+				if(CPU_btnNext = BTN_PRESSED) then
 					CPU_nxtState <= CPU_IDLE;
-					CPU_cntrlALU <= '0'; -- Reset ALU Operation
-					CPU_cntrlOut <= '1'; -- Trigger out Operation
+					CPU_cntrlALU <= CPU_DISABLE; -- Reset ALU Operation
+					CPU_cntrlOut <= CPU_ENABLE; -- Trigger out Operation
 				end if;
 				
 		end case;
@@ -102,7 +112,12 @@ begin
 			CPU_crntState <= CPU_IDLE;
 			
 		elsif(falling_edge(CPU_clk)) then
-			CPU_crntState <= CPU_nxtState;
+		
+			-- Only update next state when CPU is not used
+			if(CPU_flgALUWait 	= CPU_NOWAIT and
+				CPU_flgOutputWait = CPU_NOWAIT ) then
+				CPU_crntState <= CPU_nxtState;
+			end if;			
 		end if;			
 	
 	end process CPU_StateSync;

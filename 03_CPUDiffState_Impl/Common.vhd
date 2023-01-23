@@ -39,6 +39,13 @@ package Common_P is
 									);
 									
 									
+	type enum_mem_state is (	MEM_IDLE,
+										MEM_START,
+--										MEM_READ,
+--										MEM_WRITE,
+										MEM_END
+									);
+									
 									
 	
 	------------------
@@ -59,6 +66,12 @@ package Common_P is
 	
 	-- Module : Input
 	constant BTN_PRESSED 	: std_logic := '1';
+	
+	
+	-- Module : Memory
+	constant MEM_OPR_READ 		: std_logic := '0';
+	constant MEM_OPR_WRITE 		: std_logic := '1';
+	
 	
 	
 	

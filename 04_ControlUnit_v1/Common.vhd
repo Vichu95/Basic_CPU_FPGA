@@ -78,19 +78,29 @@ package Common_P is
 
 	------------------
 	-- Memory Map 
-	------------------
-	constant MEMLAY_OPCODE		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_DATA1		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_DATA2		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_R0		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_R1		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_A		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_B		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_PC		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_IR		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_MAR		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	constant MEMLAY_REG_MDR		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
-	
+--	------------------
+--	constant MEMLAY_OPCODE		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_DATA1		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_DATA2		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_R0		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_R1		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_A		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_B		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_PC		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_IR		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_MAR		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+--	constant MEMLAY_REG_MDR		: std_logic_vector(DATABUS_WIDTH downto 0):= "00000000";
+	constant MEMLAY_OPCODE		: typ_mem_reg:= 0;
+	constant MEMLAY_DATA1		: typ_mem_reg:= 1;
+	constant MEMLAY_DATA2		: typ_mem_reg:= 2;
+	constant MEMLAY_REG_R0		: typ_mem_reg:= 3;
+	constant MEMLAY_REG_R1		: typ_mem_reg:= 4;
+	constant MEMLAY_REG_A		: typ_mem_reg:= 5;
+	constant MEMLAY_REG_B		: typ_mem_reg:= 6;
+	constant MEMLAY_REG_PC		: typ_mem_reg:= 7;
+	constant MEMLAY_REG_IR		: typ_mem_reg:= 8;
+	constant MEMLAY_REG_MAR		: typ_mem_reg:= 9;
+	constant MEMLAY_REG_MDR		: typ_mem_reg:= 10;
 	
 	
 

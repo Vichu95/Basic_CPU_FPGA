@@ -55,7 +55,23 @@ architecture ControlUnit_A of ControlUnit_E is
 	-- tobechecked
 	signal CU_regA		: typ_mem_reg 	:= 0;						-- ALU calculated output through Accumulator
 	
-	signal CU_memAddr	: typ_addr 	:= 0;						-- ALU calculated output through Accumulator
+	-- Connections for Memory
+	signal CU_memAddr			: typ_addr := 0;						-- address to write
+	signal CU_memAddrIn		: typ_addr := 0;						-- address to write
+	signal CU_memAddrReg		: typ_addr := 0;						-- address to write
+	
+	signal CU_memDataWr		: typ_mem_reg 	:= 0;						-- data to write
+	signal CU_memDataWrIn	: typ_mem_reg 	:= 0;						-- data to write
+	signal CU_memDataWrReg	: typ_mem_reg 	:= 0;						-- data to write
+	
+	signal CU_memDataRd		: typ_mem_reg 	:= 0;						-- data that is read
+	signal CU_memDataRdIn		: typ_mem_reg 	:= 0;						-- data that is read
+	signal CU_memDataRdReg		: typ_mem_reg 	:= 0;						-- data that is read
+	
+	
+	signal CU_memEnblWr		: typ_CU_cntrlsig 	:= '0';			-- data that is read
+	signal CU_memEnblWrIn	: typ_CU_cntrlsig 	:= '0';			-- data that is read Reg
+	signal CU_memEnblWrReg	: typ_CU_cntrlsig 	:= '0';			-- data that is read Reg
 	
 		
 	--------------
@@ -84,6 +100,20 @@ begin
 	------------
 	
 --	-- tobechecked
+		
+	-- Memory entity	
+	Memory_inst : entity work.Memory_E(Memory_A) 
+	port map(
+		Memory_rst					=> CU_rst,
+		Memory_clk					=> CU_clk,
+		Memory_addrRd				=> CU_memAddr,
+		Memory_memDataWr			=> CU_memDataWr,
+		Memory_enblWr				=> CU_memEnblWr,
+		Memory_cntrlCU_enblMem	=> CU_cntrlMem,
+		Memory_stOprtn				=> CU_flgMemWait,
+		Memory_memDataRd			=> CU_memDataRd
+		);
+		
 	-- Input entity	
 	Input_inst : entity work.Input_E(Input_A) 
 	port map(
@@ -94,9 +124,13 @@ begin
 		Input_swtDataIn			=> CU_swtDataIn,
 		Input_swtOpcodIn 			=> CU_swtOpcodIn,
 		Input_cntrlCU_enblRdIn	=> CU_cntrlRdIn,
+		Input_memDataRd			=>	CU_memDataRdIn,
 		
 		Input_stOprtn				=> CU_flgInWait,
-		Input_btnCnfrm				=> CU_btnCnfrm
+		Input_btnCnfrm				=> CU_btnCnfrm,
+		Input_memAddr				=> CU_memAddrIn,
+		Input_memDataWr			=> CU_memDataWrIn,
+		Input_memEnblWr			=>	CU_memEnblWrIn
 		);
 		
 	-- ALU entity
@@ -116,9 +150,13 @@ begin
 		Register_clk					=> CU_clk,
 		Register_cntrlCU_enblPC		=> CU_cntrlPC,
 		Register_cntrlCU_enblIR		=> CU_cntrlIR,
+		Register_memDataRd			=>	CU_memDataRdReg,
 		
 		Register_stPCOprtn			=> CU_flgRegPCWait,
-		Register_stIROprtn			=> CU_flgRegIRWait
+		Register_stIROprtn			=> CU_flgRegIRWait,
+		Register_memAddr				=> CU_memAddrReg,
+		Register_memDataWr			=> CU_memDataWrReg,
+		Register_memEnblWr			=>	CU_memEnblWrReg
 		);
 	
 	-- Output entity	
@@ -135,16 +173,7 @@ begin
 		Output_7segOut10Shw		=> CU_7segOut10Shw,
 		Output_7segOut100Shw		=> CU_7segOut100Shw
 		);
-		
-	-- Memory entity	
-	Memory_inst : entity work.Memory_E(Memory_A) 
-	port map(
-		Memory_rst					=> CU_rst,
-		Memory_clk					=> CU_clk,
-		Memory_addrRd				=> CU_memAddr,		
-		Memory_cntrlCU_enblMem	=> CU_cntrlMem,
-		Memory_stOprtn				=> CU_flgMemWait
-		);
+
 	
 	-------------------------------------------------------------------
 	-- State machine which controls next states and control signals
@@ -162,7 +191,6 @@ begin
 					
 					-- Trigger Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
-					ram(0) <= 1;
 				end if ;
 				
 			when CU_READ_OPCODE_STATE =>
@@ -174,6 +202,7 @@ begin
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlRdIn <= CU_ENABLE; -- Trigger Read Operation
 					--todo call memory write with MEMLAY_OPCODE
+					CU_cntrlMem <= CU_ENABLE;
 				end if ;
 				
 			when CU_FETCH_STATE =>
@@ -186,7 +215,9 @@ begin
 					CU_cntrlPC <= CU_ENABLE; -- Trigger PC Update
 					CU_cntrlIR <= CU_ENABLE; -- Trigger IR Update
 					CU_cntrlMem <= CU_ENABLE;
-					CU_memAddr <= 2;
+--					CU_memAddr <= CU_memAddrReg;
+--					CU_memDataWr <= CU_memDataWrReg;
+					
 				end if;
 				
 			when CU_READ_DATA1_STATE =>
@@ -258,6 +289,58 @@ begin
 		end if;			
 	
 	end process CU_StateSync;
+	
+	
+		
+	-------------------------------------------------------------------
+	-- State machine which controls next states and control signals
+	-------------------------------------------------------------------
+	CU_MemFlowReg:process(CU_memAddrReg,CU_memDataWrReg, CU_memDataRd, CU_memAddrIn,CU_memDataWrIn, CU_memDataRd)
+	begin				
+	
+--		CU_memAddr <= CU_memAddrReg;
+--		CU_memDataWr <= CU_memDataWrReg;
+--		CU_memEnblWr <= CU_memEnblWrReg;
+--		CU_memDataRdReg <= CU_memDataRd;	
+		
+		case CU_crntState is
+		
+			when CU_IDLE_STATE =>
+				
+			when CU_READ_OPCODE_STATE =>
+	
+				CU_memAddr <= CU_memAddrIn;
+				CU_memDataWr <= CU_memDataWrIn;
+				CU_memEnblWr <= CU_memEnblWrIn;
+				CU_memDataRdIn <= CU_memDataRd;	
+				
+			when CU_FETCH_STATE =>	
+				CU_memAddr <= CU_memAddrReg;
+				CU_memDataWr <= CU_memDataWrReg;
+				CU_memEnblWr <= CU_memEnblWrReg;
+				CU_memDataRdReg <= CU_memDataRd;	
+				
+			when CU_READ_DATA1_STATE =>
+	
+			when CU_READ_DATA2_STATE =>
+	
+			when CU_EXECUTE_STATE =>
+	
+			when CU_OUTPUT_STATE =>
+				
+		end case;
+		
+	end process CU_MemFlowReg;
+--	
+--	CU_MemFlowIn:process(CU_memAddrIn,CU_memDataWrIn, CU_memDataRd)
+--	begin				
+--	
+--		CU_memAddr <= CU_memAddrIn;
+--		CU_memDataWr <= CU_memDataWrIn;
+--		CU_memEnblWr <= CU_memEnblWrIn;
+--		CU_memDataRdIn <= CU_memDataRd;	
+--		
+--	end process CU_MemFlowIn;
 	
 	
 end architecture ControlUnit_A;

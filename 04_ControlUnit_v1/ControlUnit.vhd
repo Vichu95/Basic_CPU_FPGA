@@ -40,6 +40,7 @@ architecture ControlUnit_A of ControlUnit_E is
 	signal CU_cntrlIR 	: typ_CU_cntrlsig := CU_DISABLE;				-- for IR 
 	signal CU_cntrlALU 	: typ_CU_cntrlsig := CU_DISABLE;				-- for ALU 
 	signal CU_cntrlOut 	: typ_CU_cntrlsig := CU_DISABLE;				-- for Output
+	signal CU_cntrlMem 	: typ_CU_cntrlsig := CU_DISABLE;				-- for Memory
 	
 	-- Wait flags to sync the other module operations
 	signal CU_flgInWait		: typ_CU_cntrlsig := CU_NOWAIT;			-- for Input
@@ -47,20 +48,42 @@ architecture ControlUnit_A of ControlUnit_E is
 	signal CU_flgRegIRWait	: typ_CU_cntrlsig := CU_NOWAIT;			-- for IR
 	signal CU_flgALUWait		: typ_CU_cntrlsig := CU_NOWAIT;			-- for ALU
 	signal CU_flgOutWait		: typ_CU_cntrlsig := CU_NOWAIT;			-- for Output
+	signal CU_flgMemWait		: typ_CU_cntrlsig := CU_NOWAIT;			-- for Memory
 
 	-- Button Status
 	signal CU_btnCnfrm	:	typ_in_btn	:= BTN_NOTPRESSED; 			--tobechecked all uses also
 	-- tobechecked
 	signal CU_regA		: typ_mem_reg 	:= 0;						-- ALU calculated output through Accumulator
-									
-									
+	
+	signal CU_memAddr	: typ_addr 	:= 0;						-- ALU calculated output through Accumulator
+	
+		
+	--------------
+	-- Procedures
+	--------------	
+	procedure CU_rstCntrlSig(
+										signal CU_cntrlRdIn 	: inout typ_CU_cntrlsig;
+										signal CU_cntrlPC 	: inout typ_CU_cntrlsig;
+										signal CU_cntrlIR 	: inout typ_CU_cntrlsig;
+										signal CU_cntrlALU 	: inout typ_CU_cntrlsig;
+										signal CU_cntrlOut 	: inout typ_CU_cntrlsig
+										) is
+	begin
+		CU_cntrlRdIn	<= CU_DISABLE;
+		CU_cntrlPC		<= CU_DISABLE;
+		CU_cntrlIR		<= CU_DISABLE;
+		CU_cntrlALU		<= CU_DISABLE;
+		CU_cntrlOut		<= CU_DISABLE;
+	end procedure;
+
+	
 begin
 	
 	------------
 	-- Instances
 	------------
 	
-	-- tobechecked
+--	-- tobechecked
 	-- Input entity	
 	Input_inst : entity work.Input_E(Input_A) 
 	port map(
@@ -87,15 +110,15 @@ begin
 		);
 		
 	-- Register entity
-	Register_inst : entity work.Register_Add_E(Register_A) 
+	Register_inst : entity work.Register_E(Register_A) 
 		port map(
 		Register_rst					=> CU_rst,
 		Register_clk					=> CU_clk,
-		Reg_cntrlCU_enblPC	=> CU_cntrlPC,
-		Reg_cntrlCU_enblIR	=> CU_cntrlIR,
+		Register_cntrlCU_enblPC		=> CU_cntrlPC,
+		Register_cntrlCU_enblIR		=> CU_cntrlIR,
 		
-		Reg_stPCOprtn				=> CU_flgRegPCWait,
-		Reg_stIROprtn				=> CU_flgRegIRWait
+		Register_stPCOprtn			=> CU_flgRegPCWait,
+		Register_stIROprtn			=> CU_flgRegIRWait
 		);
 	
 	-- Output entity	
@@ -112,29 +135,16 @@ begin
 		Output_7segOut10Shw		=> CU_7segOut10Shw,
 		Output_7segOut100Shw		=> CU_7segOut100Shw
 		);
-
-	
-	--------------
-	-- Procedures
-	--------------
-	procedure CU_rstWaitFlg() is
-	begin
-		CU_flgInWait		=> CU_NOWAIT;
-		CU_flgRegPCWait	=> CU_NOWAIT;
-		CU_flgRegIRWait	=> CU_NOWAIT;
-		CU_flgALUWait		=> CU_NOWAIT;
-		CU_flgOutWait		=> CU_NOWAIT;
-	end procedure;
-	
-	procedure CU_rstCntrlSig() is
-	begin
-		CU_cntrlRdIn	<= CU_DISABLE;
-		CU_cntrlPC		<= CU_DISABLE;
-		CU_cntrlIR		<= CU_DISABLE;
-		CU_cntrlALU		<= CU_DISABLE;
-		CU_cntrlOut		<= CU_DISABLE;
-	end procedure;
-	
+		
+	-- Memory entity	
+	Memory_inst : entity work.Memory_E(Memory_A) 
+	port map(
+		Memory_rst					=> CU_rst,
+		Memory_clk					=> CU_clk,
+		Memory_addrRd				=> CU_memAddr,		
+		Memory_cntrlCU_enblMem	=> CU_cntrlMem,
+		Memory_stOprtn				=> CU_flgMemWait
+		);
 	
 	-------------------------------------------------------------------
 	-- State machine which controls next states and control signals
@@ -146,15 +156,22 @@ begin
 		case CU_crntState is
 		
 			when CU_IDLE_STATE =>
-				CU_nxtState <= CU_READ_OPCODE_STATE;
-				CU_rstCntrlSig();
-				CU_rstWaitFlg();	
+			
+				if(CU_btnCnfrm = BTN_PRESSED) then
+					CU_nxtState <= CU_READ_OPCODE_STATE;
+					
+					-- Trigger Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
+					ram(0) <= 1;
+				end if ;
 				
 			when CU_READ_OPCODE_STATE =>
 		
 				if(CU_btnCnfrm = BTN_PRESSED) then
 					CU_nxtState <= CU_FETCH_STATE;
 	
+					-- Trigger Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlRdIn <= CU_ENABLE; -- Trigger Read Operation
 					--todo call memory write with MEMLAY_OPCODE
 				end if ;
@@ -164,14 +181,20 @@ begin
 					--todo create a function check to see if 1 or 2 data is needed
 					CU_nxtState <= CU_READ_DATA1_STATE;
 					
+					-- Trigger Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlPC <= CU_ENABLE; -- Trigger PC Update
 					CU_cntrlIR <= CU_ENABLE; -- Trigger IR Update
+					CU_cntrlMem <= CU_ENABLE;
+					CU_memAddr <= 2;
 				end if;
 				
 			when CU_READ_DATA1_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
 					CU_nxtState <= CU_READ_DATA2_STATE;
 					
+					-- Trigger Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlRdIn <= CU_ENABLE; -- Trigger Read Operation
 					--todo call memory write with MEMLAY_DATA1
 				end if;
@@ -180,6 +203,8 @@ begin
 				if(CU_btnCnfrm = BTN_PRESSED) then
 					CU_nxtState <= CU_EXECUTE_STATE;
 					
+					-- Trigger Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlRdIn <= CU_ENABLE; -- Trigger Read Operation
 					--todo call memory write with MEMLAY_DATA2
 				end if;
@@ -188,6 +213,8 @@ begin
 				if(CU_btnCnfrm = BTN_PRESSED) then
 					CU_nxtState <= CU_OUTPUT_STATE;
 					
+					-- Trigger Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlALU <= CU_ENABLE; -- Trigger ALU Operation
 					
 				end if;
@@ -196,6 +223,8 @@ begin
 				if(CU_btnCnfrm = BTN_PRESSED) then
 					CU_nxtState <= CU_IDLE_STATE;
 					
+					-- Trigger Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlOut <= CU_ENABLE; -- Trigger Output Operation
 				end if;
 				
@@ -211,8 +240,7 @@ begin
 	begin
 		if(CU_rst = '1') then
 			CU_crntState <= CU_IDLE_STATE;
-			CU_rstCntrlSig();
-			CU_rstWaitFlg();
+										
 			
 		elsif(falling_edge(CU_clk)) then
 		
@@ -225,8 +253,7 @@ begin
 				CU_flgOutWait		= CU_NOWAIT
 				) then
 				CU_crntState <= CU_nxtState;
-				CU_rstCntrlSig(); --tobechecked
-				CU_rstWaitFlg();	--tobechecked
+				
 			end if;			
 		end if;			
 	

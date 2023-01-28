@@ -10,6 +10,7 @@ package Common_P is
 	--------------------------------------------
 	constant DATABUS_WIDTH 	: natural := 7; -- 8 -> minus 1
 	constant OPCODE_WIDTH 	: natural := 2; -- 3 -> minus 1
+	constant ADDRBUS_WIDTH 	: natural := 2; -- 8 -> minus 1
 
 	
 	--------------------------------------------
@@ -21,7 +22,8 @@ package Common_P is
 	subtype typ_clk is std_logic;		-- clock
 	subtype typ_8bitdata is std_logic_vector(DATABUS_WIDTH downto 0);		-- 8bit data
 	subtype typ_opcod is std_logic_vector(OPCODE_WIDTH downto 0);		-- 3bit opcode
-`	
+	--subtype typ_addr is std_logic_vector(ADDRBUS_WIDTH downto 0);		-- 3bit address
+	subtype typ_addr is integer;		-- 3bit address
 	
 	-- Module : CU
 	subtype typ_cu_cntrlsig is std_logic;

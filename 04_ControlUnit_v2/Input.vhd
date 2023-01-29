@@ -34,6 +34,7 @@ entity Input_E is
 			Input_swtDataIn			:	in typ_databus;
 			Input_swtOpcodIn			:	in typ_opcod;
 			Input_cntrlCU_enblRdIn	:	in typ_cu_cntrlsig;						-- Control signal from CPU
+			Input_crntCUState			:	in enum_CU_state;							-- Current State of Control Unit
 			Input_memDataRd			:	in typ_databus:= typ_databus_ini;	-- Data read from RAM
 			
 			Input_stOprtn				:	out typ_cu_cntrlsig	:= CU_NOWAIT;	-- Status of Input Operation
@@ -50,16 +51,21 @@ end entity Input_E;
 --         Architecture
 -----------------------------
 architecture Input_A of Input_E is
-	
-	signal HW_PinData		: typ_mem_reg 	:= 0;						-- data that is read
+
+
+			-- DUMMY---
+	signal HW_PinData		: typ_databus 	:= 0;						-- data that is read
+			-- DUMMY---
 	
 	
 begin
 
-	process(Input_rst, Input_clk, Input_btnCnfrmRaw, Input_cntrlCU_enblRdIn)
+	process(Input_rst, Input_clk, Input_btnCnfrmRaw, Input_cntrlCU_enblRdIn, Input_memDataRd)
+	
 	
 	-- To store how cycles are required by the entity
-	variable cntrState	: integer range 0 to 2 		:= 0;	
+	constant no_of_states 	: integer := 4;
+	variable cntrState	: integer range 0 to no_of_states 		:= 0;	
 	
 	begin
 	
@@ -67,14 +73,16 @@ begin
 			
 			-- DUMMY---
 		--Parsing of confirm button has to be done irrespective of main clock 
-		Input_btnCnfrm <= Input_btnCnfrmRaw;			
-		
-		
-		
-	
+		Input_btnCnfrm <= Input_btnCnfrmRaw;
 		--- DUMMY---
 			
-		if(rising_edge(Input_clk)) then
+		
+		if(Input_rst = RESET_PRESSED) then
+			Input_stOprtn <= CU_NOWAIT;
+			
+										
+			
+		elsif(rising_edge(Input_clk)) then
 						
 			-- Perform the Input only when control signal is true.
 			if(Input_cntrlCU_enblRdIn = CU_ENABLE) then
@@ -91,12 +99,12 @@ begin
 				
 				when 1 =>
 					-- Storing Read data in MEMLAY_OPCODE
-					Input_memEnblWr <= '1';
+					Input_memEnblWr <= MEM_WRITE_EN;
 					Input_memAddr <= MEMLAY_OPCODE;
 					Input_memDataWr	<= HW_PinData;				
 				
 				
-				when 2 =>
+				when no_of_states =>
 						--Empty
 				end case;
 				
@@ -104,8 +112,7 @@ begin
 				
 				
 			
-				if(cntrState >= 2) then			
-			
+				if(cntrState >= no_of_states) then			
 					-- Input sets the status as cpu can be used
 					Input_stOprtn <= CU_NOWAIT; 				
 					cntrState := 0;
@@ -113,10 +120,6 @@ begin
 						
 				
 			end if;
-			
-				
-			
-			
 		end if;
 	end process;
 	

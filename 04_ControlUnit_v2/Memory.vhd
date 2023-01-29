@@ -45,13 +45,15 @@ end entity Memory_E;
 -----------------------------
 architecture Memory_A of Memory_E is
 	
-	type ram_type is array (0 to 12) of integer;
-	--signal Memory_ram : ram_type :=(others=>(others=>0));
-	signal Memory_ram : ram_type := (1 to 3=>56, others=>0);
+	----------
+	-- R A M
+	----------	
+	type typ_ram is array (0 to (2**ADDRBUS_WIDTH)-1) of typ_databus;
+	signal Memory_RAM : ram_type :=(others=>(others=>0));
 	
 begin
 
-	process(Memory_rst, Memory_clk, Memory_cntrlCU_enblMem, Memory_addrRd, Memory_enblWr,Memory_memDataWr)
+	process(Memory_rst, Memory_clk, Memory_cntrlCU_enblMem, Memory_addrRd, Memory_enblWr, Memory_memDataWr)
 	
 	
 	begin
@@ -65,10 +67,12 @@ begin
 				Memory_stOprtn <= CU_WAIT;
 				
 				
-				if(Memory_enblWr = '1') then
-					Memory_ram(Memory_addrRd) <= Memory_memDataWr;
+				if(Memory_enblWr = MEM_WRITE_EN) then
+					-- WRITE
+					Memory_RAM(to_integer(unsigned(Memory_addrRd))) <= Memory_memDataWr;
 				else
-					Memory_memDataRd <= Memory_ram(Memory_addrRd);
+					-- READ
+					Memory_memDataRd <= Memory_RAM(to_integer(unsigned(Memory_addrRd)));
 				end if;
 					
 				-- Memory sets the status as cpu can be used
@@ -76,9 +80,6 @@ begin
 			
 				
 			end if;
-			
-				
-			
 			
 		--end if;
 	end process;

@@ -101,6 +101,7 @@ architecture ControlUnit_A of ControlUnit_E is
 	-------------------------
 	-- P R O C E D U R E S
 	-------------------------	
+	-- CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
 	procedure CU_rstCntrlSig(
 										signal CU_cntrlRdIn 	: inout typ_CU_cntrlsig;
 										signal CU_cntrlReg 	: inout typ_CU_cntrlsig;
@@ -151,6 +152,7 @@ begin
 		Input_swtDataIn			=> CU_swtDataIn,
 		Input_swtOpcodIn 			=> CU_swtOpcodIn,
 		Input_cntrlCU_enblRdIn	=> CU_cntrlRdIn,
+		Input_crntCUState			=> CU_crntState,
 		Input_memDataRd			=>	CU_memDataRdIn,
 		-- out
 		Input_stOprtn				=> CU_flgInWait,
@@ -229,75 +231,93 @@ begin
 			when CU_IDLE_STATE =>
 			
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					CU_nxtState <= CU_READ_OPCODE_STATE;
+				
+					CU_nxtState <= CU_READ_OPCODE_STATE;	-- next state
 					
-					-- Trigger Control Signals
-					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
+					-- Reset Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
 				end if ;
+				
+				
 				
 			when CU_READ_OPCODE_STATE =>
 		
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					CU_nxtState <= CU_FETCH_STATE;
-	
-					-- Trigger Control Signals
-					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlRdIn <= CU_ENABLE; -- Trigger Read Operation
 					
-					--todo call memory write with MEMLAY_OPCODE
-					CU_cntrlMem <= CU_ENABLE;
+					CU_nxtState <= CU_FETCH_STATE;	-- next state
+	
+					-- Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
+					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if ;
+				
+				
 				
 			when CU_FETCH_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					--todo create a function check to see if 1 or 2 data is needed
-					CU_nxtState <= CU_READ_DATA1_STATE;
+					--todo create a function check to see if 1 or 2 data is needed. Eithger in input module
 					
-					-- Trigger Control Signals
-					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlPC <= CU_ENABLE; -- Trigger PC Update
-					CU_cntrlIR <= CU_ENABLE; -- Trigger IR Update
-					CU_cntrlMem <= CU_ENABLE;
+					CU_nxtState <= CU_READ_DATA1_STATE;		-- next state
+					
+					-- Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
+					CU_cntrlReg <= CU_ENABLE; 		-- Trigger Register Update
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 					
 				end if;
 				
+				
+				
 			when CU_READ_DATA1_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					CU_nxtState <= CU_READ_DATA2_STATE;
-					
-					-- Trigger Control Signals
-					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlRdIn <= CU_ENABLE; -- Trigger Read Operation
-					--todo call memory write with MEMLAY_DATA1
-				end if;
+				
+					CU_nxtState <= CU_READ_DATA2_STATE;		-- next state	
 	
+					-- Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
+					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
+				end if;
+				
+				
+				
 			when CU_READ_DATA2_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					CU_nxtState <= CU_EXECUTE_STATE;
-					
-					-- Trigger Control Signals
-					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlRdIn <= CU_ENABLE; -- Trigger Read Operation
-					--todo call memory write with MEMLAY_DATA2
-				end if;
+				
+					CU_nxtState <= CU_EXECUTE_STATE;		-- next state	
 	
+					-- Control Signals
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
+					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
+				end if;
+				
+				
+				
 			when CU_EXECUTE_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					CU_nxtState <= CU_OUTPUT_STATE;
+				
+					CU_nxtState <= CU_OUTPUT_STATE;		-- next state	
 					
 					-- Trigger Control Signals
-					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlALU <= CU_ENABLE; -- Trigger ALU Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 					
 				end if;
-	
+				
+				
+				
 			when CU_OUTPUT_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					CU_nxtState <= CU_IDLE_STATE;
+				
+					CU_nxtState <= CU_IDLE_STATE;		-- next state	
 					
 					-- Trigger Control Signals
-					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlPC, CU_cntrlIR, CU_cntrlALU, CU_cntrlOut);
+					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
 					CU_cntrlOut <= CU_ENABLE; -- Trigger Output Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if;
 				
 		end case;
@@ -310,7 +330,7 @@ begin
 	----------------------------------------------------------------------------------
 	CU_StateSync:process(CU_rst, CU_clk)
 	begin
-		if(CU_rst = '1') then
+		if(CU_rst = RESET_PRESSED) then
 			CU_crntState <= CU_IDLE_STATE;
 										
 			
@@ -319,8 +339,8 @@ begin
 			-- Only update next state when no other modules are using the resources
 			if(
 				CU_flgInWait		= CU_NOWAIT and
-				CU_flgRegPCWait	= CU_NOWAIT and
-				CU_flgRegIRWait	= CU_NOWAIT and
+				CU_flgRegWait		= CU_NOWAIT and
+				CU_flgMemWait		= CU_NOWAIT and
 				CU_flgALUWait		= CU_NOWAIT and
 				CU_flgOutWait		= CU_NOWAIT
 				) then
@@ -334,31 +354,46 @@ begin
 	
 		
 	-------------------------------------------------------------------
-	-- State machine which controls next states and control signals
+	-- Redirects the correct request to Memory
 	-------------------------------------------------------------------
-	CU_MemFlow:process(CU_memAddrReg,CU_memDataWrReg, CU_memDataRd, CU_memAddrIn,CU_memDataWrIn, CU_memDataRd)
+	CU_MemFlow:process(	CU_memAddrIn,	CU_memDataWrIn,	CU_memEnblWrIn,
+								CU_memAddrOut, CU_memDataWrOut,	CU_memEnblWrOut,
+								CU_memAddrALU,	CU_memDataWrALU,	CU_memEnblWrALU,
+								CU_memAddrReg,	CU_memDataWrReg,	CU_memEnblWrReg,
+								CU_memDataRd)
+								-- Any change in address/enable/DataWr from modules or Read data from Memory Module
 	begin	
 		
 		case CU_crntState is
 		
 			when CU_IDLE_STATE =>
-				
+				-- Do nothing
 			when CU_READ_OPCODE_STATE|CU_READ_DATA1_STATE|CU_READ_DATA2_STATE=>
-	
-				CU_memAddr <= CU_memAddrIn;
-				CU_memDataWr <= CU_memDataWrIn;
-				CU_memEnblWr <= CU_memEnblWrIn;
-				CU_memDataRdIn <= CU_memDataRd;	
+				-- Input Module
+				CU_memAddr 			<= CU_memAddrIn;
+				CU_memDataWr 		<= CU_memDataWrIn;
+				CU_memEnblWr 		<= CU_memEnblWrIn;
+				CU_memDataRdIn		<= CU_memDataRd;	
 				
 			when CU_FETCH_STATE =>	
-				CU_memAddr <= CU_memAddrReg;
-				CU_memDataWr <= CU_memDataWrReg;
-				CU_memEnblWr <= CU_memEnblWrReg;
-				CU_memDataRdReg <= CU_memDataRd;					
+				CU_memAddr			<= CU_memAddrReg;
+				CU_memDataWr 		<= CU_memDataWrReg;
+				CU_memEnblWr 		<= CU_memEnblWrReg;
+				CU_memDataRdReg 	<= CU_memDataRd;					
 	
 			when CU_EXECUTE_STATE =>
+				-- ALU Module
+				CU_memAddr 			<= CU_memAddrALU;
+				CU_memDataWr 		<= CU_memDataWrALU;
+				CU_memEnblWr 		<= CU_memEnblWrOut;
+				CU_memDataRdALU 	<= CU_memEnblWrALU;	
 	
 			when CU_OUTPUT_STATE =>
+				-- Output Module
+				CU_memAddr 			<= CU_memAddrOut;
+				CU_memDataWr 		<= CU_memDataWrOut;
+				CU_memEnblWr 		<= CU_memEnblWrOut;
+				CU_memDataRdOut	<= CU_memDataRd;	
 				
 		end case;
 		

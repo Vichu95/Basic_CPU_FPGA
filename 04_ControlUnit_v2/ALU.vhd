@@ -58,7 +58,12 @@ begin
 	--- DUMMY---
 	
 	begin
-		if(rising_edge(ALU_clk)) then
+	
+		if(ALU_rst = RESET_PRESSED) then
+			ALU_stOprtn <= CU_NOWAIT;
+										
+			
+		elsif(rising_edge(ALU_clk)) then
 						
 			-- Perform the ALU only when control signal is true.
 			-- We can extend this by getting the OpCode, Data from CPU

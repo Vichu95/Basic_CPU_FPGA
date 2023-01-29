@@ -47,52 +47,57 @@ end entity Register_E;
 -----------------------------
 architecture Register_A of Register_E is
 	
-	signal tempStrg		: typ_mem_reg 	:= 0;						-- data that is read
+	signal temp_mem		: typ_databus 	:= typ_databus_ini; --store temporarily
 	
 begin
 
-	process(Register_rst, Register_clk, Register_cntrlCU_enblPC)
+	process(Register_rst, Register_clk, Register_cntrlCU_enblReg, Register_memDataRd)
 	
 	-- To store how cycles are required by the entity
-	variable cntrState	: integer range 0 to 4 		:= 0;	
+	constant no_of_states 	: integer := 4;
+	variable cntrState		: integer range 0 to no_of_states := 0;	
 	
 	
 	begin
-		if(rising_edge(Register_clk)) then
+		
+		if(Register_rst = RESET_PRESSED) then
+			Register_stOprtn <= CU_NOWAIT;
+										
+			
+		elsif(rising_edge(Register_clk)) then
 						
-			-- Perform the Register only when control signal is true.
-			if(Register_cntrlCU_enblPC = CU_ENABLE and
-				Register_cntrlCU_enblIR = CU_ENABLE) then
+			-- Run only when control signal is true
+			if(Register_cntrlCU_enblReg = CU_ENABLE) then
 			
 				-- Register sets the status as cpu is in use and should be holded
-				Register_stPCOprtn <= CU_WAIT;
+				Register_stOprtn <= CU_WAIT;
 				
 				
 				case cntrState is
 		
 				when 0 =>					
 					-- Storing PC
-					Register_memEnblWr <= '1';
+					Register_memEnblWr <= MEM_WRITE_EN;
 					Register_memAddr <= MEMLAY_REG_PC;
 					Register_memDataWr	<= 2;
 				
 				when 1 =>
 					-- Req to Read Stored DATA1
-					Register_memEnblWr <= '0';
+					Register_memEnblWr <= MEM_READ_EN;
 					Register_memAddr <= MEMLAY_DATA1;
 					
 				when 2 =>
 					-- Reading Stored DATA1
-					tempStrg <= Register_memDataRd;
+					temp_mem <= Register_memDataRd;
 					
 				when 3 =>
 					-- Storing Read PC in IR
 					Register_memEnblWr <= '1';
 					Register_memAddr <= MEMLAY_REG_IR;
-					Register_memDataWr	<= tempStrg;				
+					Register_memDataWr	<= temp_mem;				
 				
 				
-				when 4 =>
+				when no_of_states =>
 						--Empty
 				end case;
 				
@@ -101,9 +106,8 @@ begin
 			end if;
 			
 			
-			if(cntrState >= 4) then			
-		
-				Register_stPCOprtn <= CU_NOWAIT; 				
+			if(cntrState >= no_of_states) then
+				Register_stOprtn <= CU_NOWAIT; 				
 				cntrState := 0;
 			end if;				
 						

@@ -53,11 +53,17 @@ architecture Output_A of Output_E is
 	
 begin
 
-	process(Output_rst, Output_clk, Output_cntrlCU_enblOut)
+	process(Output_rst, Output_clk, Output_cntrlCU_enblOut, Output_memDataRd)
 	
 	
 	begin
-		if(rising_edge(Output_clk)) then
+		
+		if(Output_rst = RESET_PRESSED) then
+			Output_stOprtn <= CU_NOWAIT;
+			
+										
+			
+		elsif(rising_edge(Output_clk)) then
 						
 			-- Perform the Output only when control signal is true.
 			if(Output_cntrlCU_enblOut = CU_ENABLE) then

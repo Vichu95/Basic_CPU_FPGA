@@ -386,7 +386,7 @@ begin
 				CU_memAddr 			<= CU_memAddrALU;
 				CU_memDataWr 		<= CU_memDataWrALU;
 				CU_memEnblWr 		<= CU_memEnblWrOut;
-				CU_memDataRdALU 	<= CU_memEnblWrALU;	
+				CU_memDataRdALU 	<= CU_memDataRd;	
 	
 			when CU_OUTPUT_STATE =>
 				-- Output Module

@@ -42,9 +42,9 @@ package Common_P is
 	
 	-- Module : Memory
 	subtype typ_databus 			is std_logic_vector(DATABUS_WIDTH downto 0);		-- 8bit data
-	constant typ_databus_ini 	: 	std_logic_vector(DATABUS_WIDTH downto 0) := '00000000';
+	constant typ_databus_ini 	: 	std_logic_vector(DATABUS_WIDTH downto 0) := "00000000";
 	subtype typ_addrbus 			is std_logic_vector(ADDRBUS_WIDTH downto 0);		-- 8bit address
-	constant typ_addrbus_ini 	:	std_logic_vector(ADDRBUS_WIDTH downto 0) := '00000000';
+	constant typ_addrbus_ini 	:	std_logic_vector(ADDRBUS_WIDTH downto 0) := "00000000";
 	
 	-- Module : Input
 	subtype typ_in_btn 			is std_logic;												-- Button

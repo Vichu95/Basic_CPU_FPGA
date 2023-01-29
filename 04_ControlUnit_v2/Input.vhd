@@ -54,7 +54,7 @@ architecture Input_A of Input_E is
 
 
 			-- DUMMY---
-	signal HW_PinData		: typ_databus 	:= 0;						-- data that is read
+	signal HW_PinData		: typ_databus 	:= typ_databus_ini;						-- data that is read
 			-- DUMMY---
 	
 	
@@ -64,7 +64,7 @@ begin
 	
 	
 	-- To store how cycles are required by the entity
-	constant no_of_states 	: integer := 4;
+	constant no_of_states 	: integer := 2;
 	variable cntrState	: integer range 0 to no_of_states 		:= 0;	
 	
 	begin
@@ -95,7 +95,7 @@ begin
 		
 				when 0 =>					
 					-- Reading from HW Pin
-					HW_PinData <= 74;
+					HW_PinData <= "00100110";
 				
 				when 1 =>
 					-- Storing Read data in MEMLAY_OPCODE

@@ -79,15 +79,15 @@ begin
 					-- Storing PC
 					Register_memEnblWr <= MEM_WRITE_EN;
 					Register_memAddr <= MEMLAY_REG_PC;
-					Register_memDataWr	<= 2;
+					Register_memDataWr	<= "00000010";
 				
 				when 1 =>
-					-- Req to Read Stored DATA1
+					-- Req to Read Stored MEMLAY_OPCODE
 					Register_memEnblWr <= MEM_READ_EN;
-					Register_memAddr <= MEMLAY_DATA1;
+					Register_memAddr <= MEMLAY_OPCODE;
 					
 				when 2 =>
-					-- Reading Stored DATA1
+					-- Reading Stored MEMLAY_OPCODE
 					temp_mem <= Register_memDataRd;
 					
 				when 3 =>

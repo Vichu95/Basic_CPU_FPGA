@@ -56,11 +56,11 @@ architecture Input_A of Input_E is
 	signal preVal_ReqEnbl 	: typ_cu_cntrlsig := CU_DISABLE;
 	
 	-- For button debounce
-	signal counter_btnCfrm : integer range 0 to 4*5000000 :=0;
+	signal counter_btnCfrm : integer range 0 to DEB_TIME_BTN :=0;
 	signal preVal_RawCnfrm 	: typ_in_btn := '1';
 	signal rising_RawCnfrm 	: typ_in_btn := '0';
 	signal Input_btnInputCnfrm : typ_in_btn; --todomartin : remove this when added in debounce block
-	signal counter_btnInputCfrm : integer range 0 to 4*5000000 :=0;
+	signal counter_btnInputCfrm : integer range 0 to DEB_TIME_BTN :=0;
 	signal preVal_RawInputCnfrm 	: typ_in_btn := '1';
 	signal rising_RawInputCnfrm 	: typ_in_btn := '0';
 	
@@ -69,12 +69,14 @@ begin
 
 
 	-------------- DEBOUNCE BUTTONS ------------
+	
+		--	 Input_btnInputCnfrm <= Input_btnInputCnfrmRaw;
+		--	 Input_btnCnfrm <= Input_btnCnfrmRaw;
 
-	process(Input_clkDeb, Input_btnCnfrmRaw)	
+	process(Input_clkDeb, Input_btnCnfrmRaw, Input_btnInputCnfrmRaw)
 	begin
 		
 	-------------- CONTROL UNIT STATE CONFIRM BUTTON ------------
---	 Input_btnCnfrm <= Input_btnCnfrmRaw;
 	  if (Input_clkDeb'event and Input_clkDeb = '1') then
 	  
 	  		-- To check for rising edge
@@ -88,7 +90,7 @@ begin
 	
 	  
 			if (rising_RawCnfrm = '1') then
-				 if (counter_btnCfrm = 500000) then					  
+				 if (counter_btnCfrm = DEB_TIME_BTN) then					  
 					 Input_btnCnfrm <= '1';
 					  counter_btnCfrm <= 1;
 					 rising_RawCnfrm <= '0';
@@ -109,26 +111,10 @@ begin
 				 
 			end if;
 			
-			
-	
---if (Input_btnCnfrmRaw = '0') then
---				 if (counter_btnCfrm = 4*5000000) then					  
---					 Input_btnCnfrm <= '1';										  
---				 else
---					  counter_btnCfrm <= counter_btnCfrm + 1;		  
---					  Input_btnCnfrm <= '0';    
---				 end if;
---			else
---				 counter_btnCfrm <= 0;
---				 Input_btnCnfrm <= '0';				 
---			end if;
-			
-		
+					
 		
 		
 	-------------- INPUT CONFIRM BUTTON ------------
-	--	 Input_btnInputCnfrm <= Input_btnInputCnfrmRaw;
-	
 	  		-- To check for rising edge
 			if(Input_btnInputCnfrmRaw /= preVal_RawInputCnfrm) then
 				if(Input_btnInputCnfrmRaw = '0') then
@@ -140,7 +126,7 @@ begin
 	
 	  
 			if (rising_RawInputCnfrm = '1') then
-				 if (counter_btnInputCfrm = 500000) then					  
+				 if (counter_btnInputCfrm = DEB_TIME_BTN) then					  
 					 Input_btnInputCnfrm <= '1';
 					  counter_btnInputCfrm <= 1;
 					 rising_RawInputCnfrm <= '0';

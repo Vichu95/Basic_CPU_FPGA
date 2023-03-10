@@ -105,10 +105,9 @@ begin
 			Output_7segHEX6 <= typ_out_7seg_ini;
 			Output_7segHEX7 <= typ_out_7seg_ini;
 	
-			-- Reset LEDs (data & opcode)	
-			
-			Output_ledDataInShw	<= "11111111";	
-			Output_ledOpcodInShw	<= "111";
+			-- Reset LEDs (data & opcode)				
+			Output_ledDataInShw	<= "00000000";	
+			Output_ledOpcodInShw	<= "000";
 			
 		elsif(rising_edge(Output_clk)) then
 		
@@ -134,6 +133,10 @@ begin
 						Output_7segHEX2 <= "1111111";
 						Output_7segHEX1 <= "1111111";
 						Output_7segHEX1 <= "1111111";
+						
+						-- Reset LEDs (data & opcode)				
+						Output_ledDataInShw	<= "00000000";	
+						Output_ledOpcodInShw	<= "000";
 
 
 						

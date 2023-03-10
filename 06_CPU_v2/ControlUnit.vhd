@@ -47,10 +47,10 @@ entity ControlUnit_E is
 			CU_7segHEX6			:	out typ_out_7seg;
 			CU_7segHEX7			:	out typ_out_7seg;
 			
-			  UnusedLEDR : out std_logic_vector (14 downto 8); -- red LEDs
-			  UnusedLEDG : out std_logic_vector (8 downto 0); -- green LEDs
-			  UnusedButtons : in std_logic; -- buttons
-			  UnusedSwitches : in std_logic_vector (14 downto 8)		-- slide switches
+			UnusedLEDR			: out std_logic_vector (14 downto 8); -- red LEDs
+			UnusedLEDG			: out std_logic_vector (8 downto 0); -- green LEDs
+			UnusedButtons		: in std_logic; -- buttons
+			UnusedSwitches		: in std_logic_vector (14 downto 8)		-- slide switches
 			);
 end entity ControlUnit_E;
 
@@ -139,9 +139,9 @@ begin
 	
 	
 	
-				
-			  UnusedLEDR <= "0000000";
-			  UnusedLEDG <= "000000000" ;
+	-- Default values for unused PINS
+	UnusedLEDR <= "0000000";
+	UnusedLEDG <= "000000000" ;
 
 	
 	

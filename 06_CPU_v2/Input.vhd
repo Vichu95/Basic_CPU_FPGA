@@ -31,6 +31,7 @@ entity Input_E is
 			Input_clk					:	in typ_clk;
 			Input_clkDeb				:	in typ_clk;									-- Clock used for debouncing switches
 			Input_btnCnfrmRaw			:	in typ_in_btn;
+			Input_btnInputCnfrmRaw	:	in typ_in_btn;
 			Input_swtDataIn			:	in typ_databus;
 			Input_swtOpcodIn			:	in typ_opcod;
 			Input_cntrlCU_enblRdIn	:	in typ_cu_cntrlsig;						-- Control signal from CPU
@@ -52,32 +53,123 @@ end entity Input_E;
 -----------------------------
 architecture Input_A of Input_E is
 	
-	signal Input_btnCnfrm_int : typ_in_btn; --todomartin : remove this when added in debounce block
-	signal counter_btnCfrm : integer range 0 to 4*5000000 :=0;
 	signal preVal_ReqEnbl 	: typ_cu_cntrlsig := CU_DISABLE;
+	
+	-- For button debounce
+	signal counter_btnCfrm : integer range 0 to 4*5000000 :=0;
+	signal preVal_RawCnfrm 	: typ_in_btn := '1';
+	signal rising_RawCnfrm 	: typ_in_btn := '0';
+	signal Input_btnInputCnfrm : typ_in_btn; --todomartin : remove this when added in debounce block
+	signal counter_btnInputCfrm : integer range 0 to 4*5000000 :=0;
+	signal preVal_RawInputCnfrm 	: typ_in_btn := '1';
+	signal rising_RawInputCnfrm 	: typ_in_btn := '0';
 	
 begin
 
+
+
+	-------------- DEBOUNCE BUTTONS ------------
+
 	process(Input_clkDeb, Input_btnCnfrmRaw)	
 	begin
-	-------------- DEBOUNCE CONFIRM BUTTON ------------
-	 Input_btnCnfrm_int <= Input_btnCnfrmRaw;
-	 Input_btnCnfrm <= Input_btnCnfrmRaw;
---	  if (Input_clkDeb'event and Input_clkDeb = '1') then
---			if (Input_btnCnfrmRaw = '0') then
+		
+	-------------- CONTROL UNIT STATE CONFIRM BUTTON ------------
+--	 Input_btnCnfrm <= Input_btnCnfrmRaw;
+	  if (Input_clkDeb'event and Input_clkDeb = '1') then
+	  
+	  		-- To check for rising edge
+			if(Input_btnCnfrmRaw /= preVal_RawCnfrm) then
+				if(Input_btnCnfrmRaw = '0') then
+					 rising_RawCnfrm <= '1';
+				 end if;
+				preVal_RawCnfrm <= Input_btnCnfrmRaw;
+			end if;	
+	
+	
+	  
+			if (rising_RawCnfrm = '1') then
+				 if (counter_btnCfrm = 500000) then					  
+					 Input_btnCnfrm <= '1';
+					  counter_btnCfrm <= 1;
+					 rising_RawCnfrm <= '0';
+				 else
+					  counter_btnCfrm <= counter_btnCfrm + 1;		  
+					  Input_btnCnfrm <= '0';    
+				 end if;
+			else
+
+				if (counter_btnCfrm = 0) then					  
+					 Input_btnCnfrm <= '0';
+					  counter_btnCfrm <= 0;
+				 else
+					  counter_btnCfrm <= counter_btnCfrm - 1;		 
+				 end if;
+
+				 
+				 
+			end if;
+			
+			
+	
+--if (Input_btnCnfrmRaw = '0') then
 --				 if (counter_btnCfrm = 4*5000000) then					  
---					 Input_btnCnfrm_int <= '1';										  
+--					 Input_btnCnfrm <= '1';										  
 --				 else
 --					  counter_btnCfrm <= counter_btnCfrm + 1;		  
---					  Input_btnCnfrm_int <= '0';    
+--					  Input_btnCnfrm <= '0';    
 --				 end if;
 --			else
 --				 counter_btnCfrm <= 0;
---				 Input_btnCnfrm_int <= '0';				 
+--				 Input_btnCnfrm <= '0';				 
 --			end if;
---	  end if;	 
---	 Input_btnCnfrm <= Input_btnCnfrm_int;  -- Updating the output signal
+			
+		
+		
+		
+	-------------- INPUT CONFIRM BUTTON ------------
+	--	 Input_btnInputCnfrm <= Input_btnInputCnfrmRaw;
+	
+	  		-- To check for rising edge
+			if(Input_btnInputCnfrmRaw /= preVal_RawInputCnfrm) then
+				if(Input_btnInputCnfrmRaw = '0') then
+					 rising_RawInputCnfrm <= '1';
+				 end if;
+				preVal_RawInputCnfrm <= Input_btnInputCnfrmRaw;
+			end if;	
+	
+	
+	  
+			if (rising_RawInputCnfrm = '1') then
+				 if (counter_btnInputCfrm = 500000) then					  
+					 Input_btnInputCnfrm <= '1';
+					  counter_btnInputCfrm <= 1;
+					 rising_RawInputCnfrm <= '0';
+				 else
+					  counter_btnInputCfrm <= counter_btnInputCfrm + 1;		  
+					  Input_btnInputCnfrm <= '0';    
+				 end if;
+			else
+				if (counter_btnInputCfrm = 0) then					  
+					 Input_btnInputCnfrm <= '0';
+					 counter_btnInputCfrm <= 0;
+				else
+					  counter_btnInputCfrm <= counter_btnInputCfrm - 1;		 
+				end if;				 
+			end if;
+			
+			
+			
+	  end if;	--Rising edge of debounce clock
+	 
+	 
 	end process;
+	
+	
+	
+	
+	
+	
+	
 		
 				--todo : Debounce logic for confirm button
 				--todomartin : the final state should also be stored in Input_btnCnfrm_int. This is used in this module as Input_btnCnfrm cannot be used due to build error.
@@ -134,7 +226,7 @@ begin
 								
 							when CU_READ_OPCODE_STATE =>
 								
-								if(Input_btnCnfrm_int = BTN_PRESSED) then
+								if(Input_btnInputCnfrm = BTN_PRESSED) then
 								
 									-- Storing Read data in MEMLAY_OPCODE
 									Input_memEnblWr <= MEM_WRITE_EN;
@@ -155,7 +247,7 @@ begin
 							
 							when CU_READ_DATA1_STATE =>
 								
-								if(Input_btnCnfrm_int = BTN_PRESSED) then
+								if(Input_btnInputCnfrm = BTN_PRESSED) then
 								
 									-- Storing Read data in MEMLAY_DATA1
 									Input_memEnblWr <= MEM_WRITE_EN;
@@ -173,7 +265,7 @@ begin
 								-- Check if the opcode is invert, it does not need second operand
 								if(Input_swtOpcodIn /= OPCODE_INV) then
 									
-									if(Input_btnCnfrm_int = BTN_PRESSED) then
+									if(Input_btnInputCnfrm = BTN_PRESSED) then
 									
 										-- Storing Read data in MEMLAY_DATA1
 										Input_memEnblWr <= MEM_WRITE_EN;

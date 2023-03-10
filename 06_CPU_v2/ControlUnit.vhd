@@ -31,7 +31,8 @@ entity ControlUnit_E is
 	port(	CU_rst				:	in typ_rst;
 			CU_clk				:	in typ_clk;
 			CU_clkDeb			:	in typ_clk;
-			CU_btnCnfrmRaw		:	in typ_in_btn;
+			CU_btnCnfrmRaw			:	in typ_in_btn;
+			CU_btnInputCnfrmRaw	:	in typ_in_btn;
 			CU_swtDataIn		:	in typ_databus;
 			CU_swtOpcodIn		:	in typ_opcod;
 			
@@ -44,7 +45,12 @@ entity ControlUnit_E is
 			CU_7segHEX4			:	out typ_out_7seg;
 			CU_7segHEX5			:	out typ_out_7seg;
 			CU_7segHEX6			:	out typ_out_7seg;
-			CU_7segHEX7			:	out typ_out_7seg
+			CU_7segHEX7			:	out typ_out_7seg;
+			
+			  UnusedLEDR : out std_logic_vector (14 downto 8); -- red LEDs
+			  UnusedLEDG : out std_logic_vector (8 downto 0); -- green LEDs
+			  UnusedButtons : in std_logic; -- buttons
+			  UnusedSwitches : in std_logic_vector (14 downto 8)		-- slide switches
 			);
 end entity ControlUnit_E;
 
@@ -53,6 +59,11 @@ end entity ControlUnit_E;
 --         Architecture
 -----------------------------
 architecture ControlUnit_A of ControlUnit_E is
+
+
+
+
+
 
 	--------------------
 	--  S I G N A L S     
@@ -125,6 +136,17 @@ architecture ControlUnit_A of ControlUnit_E is
 	
 begin
 	
+	
+	
+	
+				
+			  UnusedLEDR <= "0000000";
+			  UnusedLEDG <= "000000000" ;
+
+	
+	
+	
+	
 	----------------------
 	-- I N S T A N C E S
 	----------------------
@@ -154,6 +176,7 @@ begin
 		Input_clk					=> CU_clk,
 		Input_clkDeb				=> CU_clkDeb,
 		Input_btnCnfrmRaw			=> CU_btnCnfrmRaw,
+		Input_btnInputCnfrmRaw	=> CU_btnInputCnfrmRaw,
 		Input_swtDataIn			=> CU_swtDataIn,
 		Input_swtOpcodIn 			=> CU_swtOpcodIn,
 		Input_cntrlCU_enblRdIn	=> CU_cntrlRdIn,
@@ -237,7 +260,7 @@ begin
 	-------------------------------------------------------------------
 	CU_StateFlow:process(CU_crntState,CU_btnCnfrm)
 	begin
-		--CU_nxtState <= CU_crntState; -- by default, next state is current state					
+		CU_nxtState <= CU_crntState; -- by default, next state is current state					
 	
 		case CU_crntState is
 		
@@ -257,12 +280,12 @@ begin
 		
 				if(CU_btnCnfrm = BTN_PRESSED) then
 					
-					CU_nxtState <= CU_FETCH_STATE after MORE_ONECLK;	-- next state
+					CU_nxtState <= CU_FETCH_STATE;	-- next state
 	
 					-- Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlRdIn <= CU_ENABLE after MORE_HALFCLK; 	-- Trigger Read Operation
-					CU_cntrlMem <= CU_ENABLE after MORE_HALFCLK; 	-- Allow Memory Access
+					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if ;
 				
 				
@@ -271,12 +294,12 @@ begin
 				if(CU_btnCnfrm = BTN_PRESSED) then
 					--todo create a function check to see if 1 or 2 data is needed. Eithger in input module
 					
-					CU_nxtState <= CU_READ_DATA1_STATE after MORE_ONECLK;		-- next state
+					CU_nxtState <= CU_READ_DATA1_STATE;		-- next state
 					
 					-- Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlReg <= CU_ENABLE; 	-- Trigger Register Update
-					CU_cntrlMem <= CU_ENABLE; 	-- Allow Memory Access
+					CU_cntrlReg <= CU_ENABLE; 		-- Trigger Register Update
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 					
 				end if;
 				
@@ -285,12 +308,12 @@ begin
 			when CU_READ_DATA1_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
 				
-					CU_nxtState <= CU_READ_DATA2_STATE after MORE_ONEHALFCLK;		-- next state	
+					CU_nxtState <= CU_READ_DATA2_STATE;		-- next state	
 	
 					-- Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlRdIn <= CU_ENABLE after MORE_ONECLK; 	-- Trigger Read Operation
-					CU_cntrlMem <= CU_ENABLE after MORE_ONECLK;		-- Allow Memory Access
+					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if;
 				
 				
@@ -298,12 +321,12 @@ begin
 			when CU_READ_DATA2_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
 				
-					CU_nxtState <= CU_EXECUTE_STATE after MORE_ONEHALFCLK;		-- next state	
+					CU_nxtState <= CU_EXECUTE_STATE;		-- next state	
 	
 					-- Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlRdIn <= CU_ENABLE after MORE_ONECLK; 	-- Trigger Read Operation
-					CU_cntrlMem <= CU_ENABLE after MORE_ONECLK;		-- Allow Memory Access
+					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if;
 				
 				
@@ -311,12 +334,12 @@ begin
 			when CU_EXECUTE_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
 				
-					CU_nxtState <= CU_OUTPUT_STATE after MORE_ONEHALFCLK;		-- next state	
+					CU_nxtState <= CU_OUTPUT_STATE;		-- next state	
 					
 					-- Trigger Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlALU <= CU_ENABLE after MORE_ONECLK; -- Trigger ALU Operation
-					CU_cntrlMem <= CU_ENABLE after MORE_ONECLK;		-- Allow Memory Access
+					CU_cntrlALU <= CU_ENABLE; -- Trigger ALU Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 					
 				end if;
 				
@@ -325,12 +348,12 @@ begin
 			when CU_OUTPUT_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
 				
-					CU_nxtState <= CU_IDLE_STATE after MORE_ONEHALFCLK;		-- next state	
+					CU_nxtState <= CU_IDLE_STATE;		-- next state	
 					
 					-- Trigger Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlOut <= CU_ENABLE after MORE_ONECLK; -- Trigger Output Operation
-					CU_cntrlMem <= CU_ENABLE after MORE_ONECLK;		-- Allow Memory Access
+					CU_cntrlOut <= CU_ENABLE; -- Trigger Output Operation
+					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if;
 				
 		end case;

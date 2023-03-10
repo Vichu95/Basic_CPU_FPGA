@@ -130,7 +130,13 @@ begin
 						Output_7segHEX6 <= "1000000";
 						Output_7segHEX5 <= "1111001";
 						Output_7segHEX4 <= "0100001";
-										
+						Output_7segHEX3 <= "1111111";
+						Output_7segHEX2 <= "1111111";
+						Output_7segHEX1 <= "1111111";
+						Output_7segHEX1 <= "1111111";
+
+
+						
 				when CU_READ_OPCODE_STATE =>
 					--todomartin : Display the CU State as '01 OC' in 7-Segments HEX 7 to 4
 					--todomartin : Display the '= Opcode' in 7-Segments HEX 3 to 0 as per Output_swtOpcodIn[0..2]

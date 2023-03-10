@@ -73,6 +73,91 @@ architecture Output_A of Output_E is
 	signal temp_mem			: typ_databus 	:= typ_databus_ini; --store temporarily
 	signal preVal_ReqEnbl 	: typ_cu_cntrlsig := CU_DISABLE;
 	
+	
+	
+	-------------------------
+	-- P R O C E D U R E S
+	-------------------------	
+	
+		-- Output_extract_bcd_digits(bcd, binx, bcd3, bcd2, bcd1);
+	procedure Output_extract_bcd_digits(
+										variable bcd 	: inout std_logic_vector (11 downto 0);
+										variable binx : inout std_logic_vector (7 downto 0);
+										signal DataToExtract : in typ_databus;
+										variable bcd3 : out std_logic_vector (3 downto 0);
+										variable bcd2 : out std_logic_vector (3 downto 0);
+										variable bcd1 : out std_logic_vector (3 downto 0)
+										) is
+	begin				
+
+			bcd	:= (others => '0');
+			binx	:= DataToExtract;
+
+			for i in binx'range loop
+			  if bcd(3 downto 0) > "0100" then
+				 bcd(3 downto 0) := std_logic_vector(unsigned(bcd(3 downto 0)) + "0011"); 
+
+			  end if ;
+			  if bcd(7 downto 4) > "0100" then
+				  bcd(7 downto 4) := std_logic_vector(unsigned(bcd(7 downto 4)) + "0011");    
+			  end if ;
+			  bcd := bcd(10 downto 0) & binx(7); 
+			  binx := binx(6 downto 0) & '0'; 
+			end loop ;
+
+			bcd3 := bcd(11 downto 8);
+			bcd2 := bcd(7  downto 4);
+			bcd1 := bcd(3  downto 0);
+	
+	end procedure;
+	
+	
+	-- Output_conv_bcd_to_7seg(bcd_in, sevenHexDisplayout);
+	procedure Output_conv_bcd_to_7seg(
+										variable bcd_in 	: in std_logic_vector (3 downto 0);
+										signal sevenHexDisplayout 	: out typ_out_7seg
+										) is
+	begin
+
+		case (bcd_in) is
+
+			 when "0000" => -- 0
+				sevenHexDisplayout <= "1000000";	
+		 
+			 when "0001" => -- 1
+				sevenHexDisplayout <= "1111001";
+
+			 when "0010" => -- 2
+				sevenHexDisplayout <= "0100100";	
+		 
+			 when "0011" => -- 3
+				sevenHexDisplayout <= "0110000";	
+
+			 when "0100" => -- 4
+				sevenHexDisplayout <= "0011001";		
+			
+			 when "0101" => -- 5
+				sevenHexDisplayout <= "0010010";		
+
+			 when "0110" => -- 6
+				sevenHexDisplayout <= "0000010";	
+
+			 when "0111" => -- 7
+				sevenHexDisplayout <= "1111000";	
+
+			 when "1000" => -- 8
+				sevenHexDisplayout <= "0000000";	
+
+			 when "1001" => -- 9
+				sevenHexDisplayout <= "0010000";
+			 when others =>
+				sevenHexDisplayout <= "1111111";
+		end case;
+		
+	end procedure;
+	
+	
+	
 begin
 
 	process(Output_rst, Output_clk, Output_cntrlCU_enblOut, Output_memDataRd, Output_crntCUState)
@@ -230,116 +315,17 @@ begin
 						Output_ledDataInShw	<= Output_swtDataIn;	
 					
 						------------ BCD Conversion--------------
-						bcd         := (others => '0');
-						binx        := Output_swtDataIn;
-
-						for i in binx'range loop
-						  if bcd(3 downto 0) > "0100" then
-							 bcd(3 downto 0) := std_logic_vector(unsigned(bcd(3 downto 0)) + "0011"); 
-
-						  end if ;
-						  if bcd(7 downto 4) > "0100" then
-							  bcd(7 downto 4) := std_logic_vector(unsigned(bcd(7 downto 4)) + "0011");    
-						  end if ;
-						  bcd := bcd(10 downto 0) & binx(7); 
-						  binx := binx(6 downto 0) & '0'; 
-						end loop ;
-
-						bcd3 := bcd(11 downto 8);
-						bcd2 := bcd(7  downto 4);
-						bcd1 := bcd(3  downto 0);
-
-						Output_ledDataInShw <= binx;
+						Output_extract_bcd_digits(bcd, binx, Output_swtDataIn, bcd3, bcd2, bcd1);
 						
 						------------ ONES -------------------------
-
-							case (bcd1) is
-
-								 when "0000" => -- 0
-									Output_7segHEX0 <= "1000000";	
-							 
-								 when "0001" => -- 1
-									Output_7segHEX0 <= "1111001";
-
-								 when "0010" => -- 2
-									Output_7segHEX0 <= "0100100";	
-							 
-								 when "0011" => -- 3
-									Output_7segHEX0 <= "0110000";	
-
-								 when "0100" => -- 4
-									Output_7segHEX0 <= "0011001";		
-								
-								 when "0101" => -- 5
-									Output_7segHEX0 <= "0010010";		
-
-								 when "0110" => -- 6
-									Output_7segHEX0 <= "0000010";	
-
-								 when "0111" => -- 7
-									Output_7segHEX0 <= "1111000";	
-
-								 when "1000" => -- 8
-									Output_7segHEX0 <= "0000000";	
-
-								 when "1001" => -- 9
-									Output_7segHEX0 <= "0010000";
-								 when others =>
-									Output_7segHEX0 <= "1111111";
-						end case;
+						Output_conv_bcd_to_7seg(bcd1, Output_7segHEX0);
 
 						------------ TENS -------------------------
-
-							case (bcd2) is
-
-								 when "0000" => -- 0
-									Output_7segHEX1 <= "1000000";	
-							 
-								 when "0001" => -- 1
-									Output_7segHEX1 <= "1111001";
-
-								 when "0010" => -- 2
-									Output_7segHEX1 <= "0100100";	
-							 
-								 when "0011" => -- 3
-									Output_7segHEX1 <= "0110000";	
-
-								 when "0100" => -- 4
-									Output_7segHEX1 <= "0011001";		
-								
-								 when "0101" => -- 5
-									Output_7segHEX1 <= "0010010";		
-
-								 when "0110" => -- 6
-									Output_7segHEX1 <= "0000010";	
-
-								 when "0111" => -- 7
-									Output_7segHEX1 <= "1111000";	
-
-								 when "1000" => -- 8
-									Output_7segHEX1 <= "0000000";	
-
-								 when "1001" => -- 9
-									Output_7segHEX1 <= "0010000";
-								 when others =>
-									Output_7segHEX1 <= "1111111";
-						end case;	
+						Output_conv_bcd_to_7seg(bcd2, Output_7segHEX1);
 
 						------------ HUNDREDS ---------------------
-
-							case (bcd3) is
-
-								 when "0000" => -- 0
-									Output_7segHEX2 <= "1000000";	
-							 
-								 when "0001" => -- 1
-									Output_7segHEX2 <= "1111001";
-
-								 when "0010" => -- 2
-									Output_7segHEX2 <= "0100100";		
-								 when others =>
-									Output_7segHEX2 <= "1111111";
-							end case;		
+						Output_conv_bcd_to_7seg(bcd3, Output_7segHEX2);
+						
 					
 				when CU_READ_DATA2_STATE =>
 					-- Check if the opcode is invert, it does not need second operand
@@ -366,117 +352,18 @@ begin
 						Output_7segHEX3 <= "0110111";	
 						
 						
-						------------ BCD Conversion--------------						
-						bcd         := (others => '0');
-						binx        := Output_swtDataIn;
-
-						for i in binx'range loop
-						  if bcd(3 downto 0) > "0100" then
-							 bcd(3 downto 0) := std_logic_vector(unsigned(bcd(3 downto 0)) + "0011"); 
-
-						  end if ;
-						  if bcd(7 downto 4) > "0100" then
-							  bcd(7 downto 4) := std_logic_vector(unsigned(bcd(7 downto 4)) + "0011");    
-						  end if ;
-						  bcd := bcd(10 downto 0) & binx(7); 
-						  binx := binx(6 downto 0) & '0'; 
-						end loop ;
-
-						bcd3 := bcd(11 downto 8);
-						bcd2 := bcd(7  downto 4);
-						bcd1 := bcd(3  downto 0);
-
-						Output_ledDataInShw <= binx;
+						------------ BCD Conversion--------------
+						Output_extract_bcd_digits(bcd, binx, Output_swtDataIn, bcd3, bcd2, bcd1);
 						
 						------------ ONES -------------------------
-
-							case (bcd1) is
-
-								 when "0000" => -- 0
-									Output_7segHEX0 <= "1000000";	
-							 
-								 when "0001" => -- 1
-									Output_7segHEX0 <= "1111001";
-
-								 when "0010" => -- 2
-									Output_7segHEX0 <= "0100100";	
-							 
-								 when "0011" => -- 3
-									Output_7segHEX0 <= "0110000";	
-
-								 when "0100" => -- 4
-									Output_7segHEX0 <= "0011001";		
-								
-								 when "0101" => -- 5
-									Output_7segHEX0 <= "0010010";		
-
-								 when "0110" => -- 6
-									Output_7segHEX0 <= "0000010";	
-
-								 when "0111" => -- 7
-									Output_7segHEX0 <= "1111000";	
-
-								 when "1000" => -- 8
-									Output_7segHEX0 <= "0000000";	
-
-								 when "1001" => -- 9
-									Output_7segHEX0 <= "0010000";
-								 when others =>
-									Output_7segHEX0 <= "1111111";
-						end case;
+						Output_conv_bcd_to_7seg(bcd1, Output_7segHEX0);
 
 						------------ TENS -------------------------
-
-							case (bcd2) is
-
-								 when "0000" => -- 0
-									Output_7segHEX1 <= "1000000";	
-							 
-								 when "0001" => -- 1
-									Output_7segHEX1 <= "1111001";
-
-								 when "0010" => -- 2
-									Output_7segHEX1 <= "0100100";	
-							 
-								 when "0011" => -- 3
-									Output_7segHEX1 <= "0110000";	
-
-								 when "0100" => -- 4
-									Output_7segHEX1 <= "0011001";		
-								
-								 when "0101" => -- 5
-									Output_7segHEX1 <= "0010010";		
-
-								 when "0110" => -- 6
-									Output_7segHEX1 <= "0000010";	
-
-								 when "0111" => -- 7
-									Output_7segHEX1 <= "1111000";	
-
-								 when "1000" => -- 8
-									Output_7segHEX1 <= "0000000";	
-
-								 when "1001" => -- 9
-									Output_7segHEX1 <= "0010000";
-								 when others =>
-									Output_7segHEX1 <= "1111111";
-						end case;	
+						Output_conv_bcd_to_7seg(bcd2, Output_7segHEX1);
 
 						------------ HUNDREDS ---------------------
-
-							case (bcd3) is
-
-								 when "0000" => -- 0
-									Output_7segHEX2 <= "1000000";	
-							 
-								 when "0001" => -- 1
-									Output_7segHEX2 <= "1111001";
-
-								 when "0010" => -- 2
-									Output_7segHEX2 <= "0100100";		
-								 when others =>
-									Output_7segHEX2 <= "1111111";
-							end case;							
+						Output_conv_bcd_to_7seg(bcd3, Output_7segHEX2);						
+								
 									
 					end if;
 				when CU_EXECUTE_STATE =>
@@ -525,117 +412,18 @@ begin
 						when 2 =>
 							--todomartin : Display the read value as '= output' in 7-Segments HEX 3 to 0					
 						
-									------------ BCD Conversion--------------
-									bcd         := (others => '0');
-									binx        := temp_mem;
+						
+							------------ BCD Conversion--------------
+							Output_extract_bcd_digits(bcd, binx, temp_mem, bcd3, bcd2, bcd1);
+							
+							------------ ONES -------------------------
+							Output_conv_bcd_to_7seg(bcd1, Output_7segHEX0);
 
-									for i in binx'range loop
-									  if bcd(3 downto 0) > "0100" then
-										 bcd(3 downto 0) := std_logic_vector(unsigned(bcd(3 downto 0)) + "0011"); 
+							------------ TENS -------------------------
+							Output_conv_bcd_to_7seg(bcd2, Output_7segHEX1);
 
-									  end if ;
-									  if bcd(7 downto 4) > "0100" then
-										  bcd(7 downto 4) := std_logic_vector(unsigned(bcd(7 downto 4)) + "0011");    
-									  end if ;
-									  bcd := bcd(10 downto 0) & binx(7); 
-									  binx := binx(6 downto 0) & '0'; 
-									end loop ;
-
-									bcd3 := bcd(11 downto 8);
-									bcd2 := bcd(7  downto 4);
-									bcd1 := bcd(3  downto 0);
-
-									Output_ledDataInShw <= binx;
-									
-									------------ ONES -------------------------
-
-										case (bcd1) is
-
-											 when "0000" => -- 0
-												Output_7segHEX0 <= "1000000";	
-										 
-											 when "0001" => -- 1
-												Output_7segHEX0 <= "1111001";
-
-											 when "0010" => -- 2
-												Output_7segHEX0 <= "0100100";	
-										 
-											 when "0011" => -- 3
-												Output_7segHEX0 <= "0110000";	
-
-											 when "0100" => -- 4
-												Output_7segHEX0 <= "0011001";		
-											
-											 when "0101" => -- 5
-												Output_7segHEX0 <= "0010010";		
-
-											 when "0110" => -- 6
-												Output_7segHEX0 <= "0000010";	
-
-											 when "0111" => -- 7
-												Output_7segHEX0 <= "1111000";	
-
-											 when "1000" => -- 8
-												Output_7segHEX0 <= "0000000";	
-
-											 when "1001" => -- 9
-												Output_7segHEX0 <= "0010000";
-											 when others =>
-												Output_7segHEX0 <= "1111111";
-									end case;
-
-									------------ TENS -------------------------
-
-										case (bcd2) is
-
-											 when "0000" => -- 0
-												Output_7segHEX1 <= "1000000";	
-										 
-											 when "0001" => -- 1
-												Output_7segHEX1 <= "1111001";
-
-											 when "0010" => -- 2
-												Output_7segHEX1 <= "0100100";	
-										 
-											 when "0011" => -- 3
-												Output_7segHEX1 <= "0110000";	
-
-											 when "0100" => -- 4
-												Output_7segHEX1 <= "0011001";		
-											
-											 when "0101" => -- 5
-												Output_7segHEX1 <= "0010010";		
-
-											 when "0110" => -- 6
-												Output_7segHEX1 <= "0000010";	
-
-											 when "0111" => -- 7
-												Output_7segHEX1 <= "1111000";	
-
-											 when "1000" => -- 8
-												Output_7segHEX1 <= "0000000";	
-
-											 when "1001" => -- 9
-												Output_7segHEX1 <= "0010000";
-											 when others =>
-												Output_7segHEX1 <= "1111111";
-									end case;	
-
-									------------ HUNDREDS ---------------------
-
-										case (bcd3) is
-
-											 when "0000" => -- 0
-												Output_7segHEX2 <= "1000000";	
-										 
-											 when "0001" => -- 1
-												Output_7segHEX2 <= "1111001";
-
-											 when "0010" => -- 2
-												Output_7segHEX2 <= "0100100";		
-											 when others =>
-												Output_7segHEX2 <= "1111111";
-										end case;
+							------------ HUNDREDS ---------------------
+							Output_conv_bcd_to_7seg(bcd3, Output_7segHEX2);	
 						
 						when no_of_states =>
 								-- Empty

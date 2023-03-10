@@ -88,8 +88,7 @@ begin
 					rising_RawCnfrm <= '0';
 				end if;
 				preVal_RawCnfrm <= Input_btnCnfrmRaw;
-			end if;	
-	
+			end if;
 	
 	  
 			if (rising_RawCnfrm = '1') then
@@ -104,21 +103,11 @@ begin
 			else
 			
 				Input_btnCnfrm <= '0';
- 			  counter_btnCfrm <= 0;
---				if (counter_btnCfrm = 0) then					  
---					 Input_btnCnfrm <= '0';
---					  counter_btnCfrm <= 0;
---				else
---					  counter_btnCfrm <= counter_btnCfrm - 1;		 
---				end if;
-
-				 
-				 
+				counter_btnCfrm <= 0;				 
 			end if;
 			
 					
-		
-		
+				
 	-------------- INPUT CONFIRM BUTTON ------------
 	  		-- To check for rising edge
 			if(Input_btnInputCnfrmRaw /= preVal_RawInputCnfrm) then
@@ -129,7 +118,6 @@ begin
 				end if;
 				preVal_RawInputCnfrm <= Input_btnInputCnfrmRaw;
 			end if;	
-	
 	
 	  
 			if (rising_RawInputCnfrm = '1') then
@@ -142,22 +130,12 @@ begin
 					  Input_btnInputCnfrm <= '0';    
 				 end if;
 			else
-				 Input_btnInputCnfrm <= '0';
+				Input_btnInputCnfrm <= '0';
 				counter_btnInputCfrm <= 0;
---				if (counter_btnInputCfrm = 0) then					  
---					 Input_btnInputCnfrm <= '0';
---					 counter_btnInputCfrm <= 0;
---				else
---					  counter_btnInputCfrm <= counter_btnInputCfrm - 1;		 
---				end if;	
-				
-			end if;
+			end if;	
 			
 			
-			
-	  end if;	--Rising edge of debounce clock
-	 
-	 
+	  end if;	--Rising edge of debounce clock	 
 	end process;
 	
 	
@@ -306,11 +284,7 @@ begin
 				
 			end if;
 			
-			
---			if(cntrState >= no_of_states) then
---				Input_stOprtn <= CU_NOWAIT;
---			end if;	
-			
+						
 						
 		end if;
 	end process;

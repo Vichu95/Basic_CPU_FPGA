@@ -151,7 +151,7 @@ begin
 						Output_7segHEX4 <= "1000110";
 						Output_7segHEX3 <= "0110111";
 					
-					  
+					   Output_ledOpcodInShw <= Output_swtOpcodIn;
 	
 					case("00000" & Output_swtOpcodIn) is
 						
@@ -225,6 +225,9 @@ begin
 						Output_7segHEX5 <= "0100001";
 						Output_7segHEX4 <= "1111001";
 						Output_7segHEX3 <= "0110111";
+						
+							
+						Output_ledDataInShw	<= Output_swtDataIn;	
 					
 						------------ BCD Conversion--------------
 						bcd         := (others => '0');
@@ -349,6 +352,9 @@ begin
 					Output_7segHEX2 <= "1111111";
 					Output_7segHEX1 <= "1111111";	
 					Output_7segHEX0 <= "1111111";
+					
+					
+					Output_ledDataInShw	<= "00000000";	
 					
 					if(Output_swtOpcodIn(OPCODE_WIDTH downto 0) /= OPCODE_INV) then
 						--todomartin : Display the CU State as ''04 d2' in 7-Segments HEX 7 to 4
@@ -514,6 +520,7 @@ begin
 						when 1 =>
 							-- Reading Stored MEMLAY_REG_R1
 							temp_mem <= Output_memDataRd;
+							Output_ledDataInShw <= temp_mem;
 							
 						when 2 =>
 							--todomartin : Display the read value as '= output' in 7-Segments HEX 3 to 0					

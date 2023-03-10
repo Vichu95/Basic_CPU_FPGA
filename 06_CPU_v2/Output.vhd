@@ -238,44 +238,44 @@ begin
 					
 					   Output_ledOpcodInShw <= Output_swtOpcodIn;
 	
-					case("00000" & Output_swtOpcodIn) is
+					case(Output_swtOpcodIn) is
 						
-							when "00000001" => -- Add
+							when OPCODE_ADD => -- Add
 								Output_7segHEX2 <= "0001000";
 								Output_7segHEX1 <= "0100001";
 								Output_7segHEX0 <= "0100001";
 
-							when "00000010" => -- Sub
+							when OPCODE_SUB => -- Sub
 								Output_7segHEX2 <= "0010010";
 								Output_7segHEX1 <= "1100011";
 								Output_7segHEX0 <= "0000011";
 								
-							when "00000011" => -- Inv
+							when OPCODE_INV => -- Inv
 								Output_7segHEX2 <= "1111001";
 								Output_7segHEX1 <= "0101011";
 								Output_7segHEX0 <= "1100011";
 							
-							when "00000100" => -- And
+							when OPCODE_AND => -- And
 								Output_7segHEX2 <= "0001000";
 								Output_7segHEX1 <= "0101011";
 								Output_7segHEX0 <= "0100001";
 
-							when "00000101" => -- Or
+							when OPCODE_OR => -- Or
 								Output_7segHEX2 <= "1000000";
 								Output_7segHEX1 <= "0101111";
 								Output_7segHEX0 <= "1111111";
 
-							when "00000110" => -- Xor
+							when OPCODE_XOR => -- Xor
 								Output_7segHEX2 <= "0001001";
 								Output_7segHEX1 <= "0100011";
 								Output_7segHEX0 <= "0101111";
 				
-							when "00000000" => -- Bitshift right [Sh |-]
+							when OPCODE_BITSHIFTR => -- Bitshift right [Sh |-]
 								Output_7segHEX2 <= "0010010";
 								Output_7segHEX1 <= "0001011";
 								Output_7segHEX0 <= "0001111";
 
-							when "00000111" => -- Bitshift left [Sh -|]
+							when OPCODE_BITSHIFTL => -- Bitshift left [Sh -|]
 								Output_7segHEX2 <= "0010010";
 								Output_7segHEX1 <= "0001011";
 								Output_7segHEX0 <= "0111001";
@@ -332,12 +332,12 @@ begin
 					
 					Output_7segHEX7 <= "1000000";
 					Output_7segHEX6 <= "0011001";
-					Output_7segHEX5 <= "1111111";
-					Output_7segHEX4 <= "1111111";
-					Output_7segHEX3 <= "1111111";
-					Output_7segHEX2 <= "1111111";
-					Output_7segHEX1 <= "1111111";	
-					Output_7segHEX0 <= "1111111";
+					Output_7segHEX5 <= "0100001";
+					Output_7segHEX4 <= "0100100";
+					Output_7segHEX3 <= "0111111";
+					Output_7segHEX2 <= "0111111";
+					Output_7segHEX1 <= "0111111";	
+					Output_7segHEX0 <= "0111111";
 					
 					
 					Output_ledDataInShw	<= "00000000";	
@@ -347,9 +347,11 @@ begin
 						--todomartin : Display the '= data 2' in 7-Segments HEX3 to 0 as per Output_swtDataIn[0..7]
 						--todomartin : Display the Output_swtDataIn[0..7] in Output_ledDataInShw[0..7] for binary
 						
-						Output_7segHEX5 <= "0100001";
-						Output_7segHEX4 <= "0100100";
+						--Output_7segHEX5 <= "0100001";
+						--Output_7segHEX4 <= "0100100";
 						Output_7segHEX3 <= "0110111";	
+						
+						Output_ledDataInShw	<= Output_swtDataIn;	
 						
 						
 						------------ BCD Conversion--------------
@@ -407,7 +409,7 @@ begin
 						when 1 =>
 							-- Reading Stored MEMLAY_REG_R1
 							temp_mem <= Output_memDataRd;
-							Output_ledDataInShw <= temp_mem;
+							Output_ledDataInShw <= Output_memDataRd;
 							
 						when 2 =>
 							--todomartin : Display the read value as '= output' in 7-Segments HEX 3 to 0					
@@ -424,6 +426,9 @@ begin
 
 							------------ HUNDREDS ---------------------
 							Output_conv_bcd_to_7seg(bcd3, Output_7segHEX2);	
+							
+							
+							
 						
 						when no_of_states =>
 								-- Empty

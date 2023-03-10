@@ -325,7 +325,7 @@ begin
 	
 					-- Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation
+					CU_cntrlRdIn <= CU_ENABLE; 	-- Trigger Read Operation; Delay is required give a rising edge
 					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if;
 				
@@ -421,7 +421,7 @@ begin
 				-- ALU Module
 				CU_memAddr 			<= CU_memAddrALU;
 				CU_memDataWr 		<= CU_memDataWrALU;
-				CU_memEnblWr 		<= CU_memEnblWrOut;
+				CU_memEnblWr 		<= CU_memEnblWrALU;
 				CU_memDataRdALU 	<= CU_memDataRd;	
 	
 			when CU_OUTPUT_STATE =>

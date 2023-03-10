@@ -132,7 +132,7 @@ begin
 						Output_7segHEX3 <= "1111111";
 						Output_7segHEX2 <= "1111111";
 						Output_7segHEX1 <= "1111111";
-						Output_7segHEX1 <= "1111111";
+						Output_7segHEX0 <= "1111111";
 						
 						-- Reset LEDs (data & opcode)				
 						Output_ledDataInShw	<= "00000000";	
@@ -350,7 +350,7 @@ begin
 					Output_7segHEX1 <= "1111111";	
 					Output_7segHEX0 <= "1111111";
 					
-					if(Output_swtOpcodIn /= OPCODE_INV) then
+					if(Output_swtOpcodIn(OPCODE_WIDTH downto 0) /= OPCODE_INV) then
 						--todomartin : Display the CU State as ''04 d2' in 7-Segments HEX 7 to 4
 						--todomartin : Display the '= data 2' in 7-Segments HEX3 to 0 as per Output_swtDataIn[0..7]
 						--todomartin : Display the Output_swtDataIn[0..7] in Output_ledDataInShw[0..7] for binary
@@ -520,7 +520,7 @@ begin
 						
 									------------ BCD Conversion--------------
 									bcd         := (others => '0');
-									binx        := Output_memDataRd;
+									binx        := temp_mem;
 
 									for i in binx'range loop
 									  if bcd(3 downto 0) > "0100" then

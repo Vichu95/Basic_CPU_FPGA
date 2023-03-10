@@ -54,6 +54,7 @@ end entity Input_E;
 architecture Input_A of Input_E is
 	
 	signal preVal_ReqEnbl 	: typ_cu_cntrlsig := CU_DISABLE;
+	signal preVal_CUState 	: enum_CU_state;
 	
 	-- For button debounce
 	signal counter_btnCfrm : integer range 0 to DEB_TIME_BTN :=0;
@@ -83,7 +84,9 @@ begin
 			if(Input_btnCnfrmRaw /= preVal_RawCnfrm) then
 				if(Input_btnCnfrmRaw = '0') then
 					 rising_RawCnfrm <= '1';
-				 end if;
+				else
+					rising_RawCnfrm <= '0';
+				end if;
 				preVal_RawCnfrm <= Input_btnCnfrmRaw;
 			end if;	
 	
@@ -99,13 +102,15 @@ begin
 					  Input_btnCnfrm <= '0';    
 				 end if;
 			else
-
-				if (counter_btnCfrm = 0) then					  
-					 Input_btnCnfrm <= '0';
-					  counter_btnCfrm <= 0;
-				 else
-					  counter_btnCfrm <= counter_btnCfrm - 1;		 
-				 end if;
+			
+				Input_btnCnfrm <= '0';
+ 			  counter_btnCfrm <= 0;
+--				if (counter_btnCfrm = 0) then					  
+--					 Input_btnCnfrm <= '0';
+--					  counter_btnCfrm <= 0;
+--				else
+--					  counter_btnCfrm <= counter_btnCfrm - 1;		 
+--				end if;
 
 				 
 				 
@@ -118,8 +123,10 @@ begin
 	  		-- To check for rising edge
 			if(Input_btnInputCnfrmRaw /= preVal_RawInputCnfrm) then
 				if(Input_btnInputCnfrmRaw = '0') then
-					 rising_RawInputCnfrm <= '1';
-				 end if;
+					rising_RawInputCnfrm <= '1';
+				else
+					rising_RawInputCnfrm <= '0';
+				end if;
 				preVal_RawInputCnfrm <= Input_btnInputCnfrmRaw;
 			end if;	
 	
@@ -135,12 +142,15 @@ begin
 					  Input_btnInputCnfrm <= '0';    
 				 end if;
 			else
-				if (counter_btnInputCfrm = 0) then					  
-					 Input_btnInputCnfrm <= '0';
-					 counter_btnInputCfrm <= 0;
-				else
-					  counter_btnInputCfrm <= counter_btnInputCfrm - 1;		 
-				end if;				 
+				 Input_btnInputCnfrm <= '0';
+				counter_btnInputCfrm <= 0;
+--				if (counter_btnInputCfrm = 0) then					  
+--					 Input_btnInputCnfrm <= '0';
+--					 counter_btnInputCfrm <= 0;
+--				else
+--					  counter_btnInputCfrm <= counter_btnInputCfrm - 1;		 
+--				end if;	
+				
 			end if;
 			
 			
@@ -186,8 +196,15 @@ begin
 				  cntrState := 0;
 				 end if;
 				preVal_ReqEnbl <= Input_cntrlCU_enblRdIn;
-			end if;	
-		
+			end if;
+			
+			-- To check if the state changes from CU_READ_DATA1_STATE to CU_READ_DATA2_STATE
+			if(Input_crntCUState /= preVal_CUState) then
+			  if(Input_crntCUState = CU_READ_DATA2_STATE) then
+				  cntrState := 0;
+				 end if;
+				preVal_CUState <= Input_crntCUState;
+			end if;
 	
 	
 			-- Perform the Input only when control signal is true.
@@ -265,6 +282,8 @@ begin
 										cntrState := cntrState + 1;
 							
 									end if;
+								else
+									Input_stOprtn <= CU_NOWAIT; -- No need to wait if it is operator with one operand
 								end if;
 							when CU_EXECUTE_STATE =>
 								--do nothing

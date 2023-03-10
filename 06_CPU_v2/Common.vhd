@@ -26,7 +26,7 @@ package Common_P is
 	constant MORE_HALFCLK : time 	 := 60 ps; -- More than one cycle  --tobedeleted
 	constant MORE_ONECLK : time 	 := 110 ps; -- More than one cycle 
 	constant MORE_ONEHALFCLK : time 	 := 160 ps; -- More than one cycle 
-	constant DEB_TIME_BTN 	: natural := 5000000; -- 8 -> minus 1
+	constant DEB_TIME_BTN 	: natural := 3; -- 8 -> minus 1
 	constant DATABUS_WIDTH 	: natural := 7; -- 8 -> minus 1
 	constant OPCODE_WIDTH 	: natural := 2; -- 3 -> minus 1
 	constant ADDRBUS_WIDTH 	: natural := 7; -- 8 -> minus 1

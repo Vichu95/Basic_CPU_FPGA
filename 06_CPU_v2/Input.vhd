@@ -53,26 +53,25 @@ end entity Input_E;
 -----------------------------
 architecture Input_A of Input_E is
 	
-	signal preVal_ReqEnbl 	: typ_cu_cntrlsig := CU_DISABLE;
-	signal preVal_CUState 	: enum_CU_state;
+	signal preVal_ReqEnbl 			: typ_cu_cntrlsig := CU_DISABLE;
+	signal preVal_CUState 			: enum_CU_state;
 	
-	-- For button debounce
-	signal counter_btnCfrm : integer range 0 to DEB_TIME_BTN :=0;
-	signal preVal_RawCnfrm 	: typ_in_btn := '1';
-	signal rising_RawCnfrm 	: typ_in_btn := '0';
-	signal Input_btnInputCnfrm : typ_in_btn; --todomartin : remove this when added in debounce block
-	signal counter_btnInputCfrm : integer range 0 to DEB_TIME_BTN :=0;
+	-- For CU state confirm button debounce
+	signal counter_btnCfrm 			: integer range 0 to DEB_TIME_BTN :=0;
+	signal preVal_RawCnfrm 			: typ_in_btn := '1';
+	signal rising_RawCnfrm 			: typ_in_btn := '0';
+	-- For Input confirm button debounce
+	signal Input_btnInputCnfrm 	: typ_in_btn;
+	signal counter_btnInputCfrm 	: integer range 0 to DEB_TIME_BTN :=0;
 	signal preVal_RawInputCnfrm 	: typ_in_btn := '1';
 	signal rising_RawInputCnfrm 	: typ_in_btn := '0';
 	
 begin
 
 
-
+	--------------------------------------------
 	-------------- DEBOUNCE BUTTONS ------------
-	
-		--	 Input_btnInputCnfrm <= Input_btnInputCnfrmRaw;
-		--	 Input_btnCnfrm <= Input_btnCnfrmRaw;
+	--------------------------------------------
 
 	process(Input_clkDeb, Input_btnCnfrmRaw, Input_btnInputCnfrmRaw)
 	begin
@@ -141,21 +140,11 @@ begin
 	
 	
 	
+	process(Input_rst, Input_clk, Input_btnCnfrmRaw, Input_cntrlCU_enblRdIn, Input_memDataRd)	
 	
-	
-	
-		
-				--todo : Debounce logic for confirm button
-				--todomartin : the final state should also be stored in Input_btnCnfrm_int. This is used in this module as Input_btnCnfrm cannot be used due to build error.
-	-- CHANGE NOTE: Debounce logic added; variable names adapted to match the port section
-
-	
-	process(Input_rst, Input_clk, Input_btnCnfrmRaw, Input_cntrlCU_enblRdIn, Input_memDataRd)
-	
-	
-	-- To store how cycles are required by the entity. Also to make sure it executes only ones
-	constant no_of_states 	: integer := 1;
-	variable cntrState		: integer range 0 to no_of_states := 0;	
+		-- To store how cycles are required by the entity. Also to make sure it executes only ones
+		constant no_of_states 	: integer := 1;
+		variable cntrState		: integer range 0 to no_of_states := 0;	
 	
 	begin
 						
@@ -185,108 +174,90 @@ begin
 			end if;
 	
 	
+	
 			-- Perform the Input only when control signal is true.
 			if(Input_cntrlCU_enblRdIn = CU_ENABLE) then
 			
 				-- Input sets the status as cpu is in use and should be holded
-				Input_stOprtn <= CU_WAIT;
-				
-				
+				Input_stOprtn <= CU_WAIT;				
 				
 				case cntrState is
 		
-				when 0 =>	
-						-- Based on the state of Control Unit, input module should:
-						case Input_crntCUState is
+					when 0 =>	
+							-- Based on the state of Control Unit, input module should:
+							case Input_crntCUState is
+						
+								when CU_IDLE_STATE =>
+									--do nothing
+									Input_stOprtn <= CU_NOWAIT;
+									cntrState := cntrState + 1;
+									
+									
+								when CU_READ_OPCODE_STATE =>
+									
+									if(Input_btnInputCnfrm = BTN_PRESSED) then									
+										-- Storing Read data in MEMLAY_OPCODE
+										Input_memEnblWr <= MEM_WRITE_EN;
+										Input_memAddr <= MEMLAY_OPCODE;										
+										Input_memDataWr <= "00000" & Input_swtOpcodIn;
 					
-							when CU_IDLE_STATE =>
-								--do nothing
-								Input_stOprtn <= CU_NOWAIT;
-								cntrState := cntrState + 1;
+										Input_stOprtn <= CU_NOWAIT;
+										cntrState := cntrState + 1;										
+									end if;
 								
-								
-							when CU_READ_OPCODE_STATE =>
-								
-								if(Input_btnInputCnfrm = BTN_PRESSED) then
-								
-									-- Storing Read data in MEMLAY_OPCODE
-									Input_memEnblWr <= MEM_WRITE_EN;
-									Input_memAddr <= MEMLAY_OPCODE;
-									--Input_memDataWr	<= "00000001";			--todomartin : Read the Opcode from FPGA through Input_swtOpcodIn[0..2]
-									
-									Input_memDataWr <= "00000" & Input_swtOpcodIn;
-				
+								when CU_FETCH_STATE =>	
+									--do nothing
 									Input_stOprtn <= CU_NOWAIT;
 									cntrState := cntrState + 1;
-									
-								end if;
-							
-							when CU_FETCH_STATE =>	
-								--do nothing
-								Input_stOprtn <= CU_NOWAIT;
-								cntrState := cntrState + 1;
-							
-							when CU_READ_DATA1_STATE =>
 								
-								if(Input_btnInputCnfrm = BTN_PRESSED) then
-								
-									-- Storing Read data in MEMLAY_DATA1
-									Input_memEnblWr <= MEM_WRITE_EN;
-									Input_memAddr <= MEMLAY_DATA1;
-									--Input_memDataWr	<= "00000001";			--todomartin : Read the Opcode from FPGA through Input_swtDataIn[0..7]	
-						
-									Input_memDataWr <= Input_swtDataIn;
+								when CU_READ_DATA1_STATE =>
 									
-									Input_stOprtn <= CU_NOWAIT;
-									cntrState := cntrState + 1;
-						
-								end if;
-							
-							when CU_READ_DATA2_STATE =>
-								-- Check if the opcode is invert, it does not need second operand
-								if(Input_swtOpcodIn /= OPCODE_INV) then
-									
-									if(Input_btnInputCnfrm = BTN_PRESSED) then
-									
+									if(Input_btnInputCnfrm = BTN_PRESSED) then									
 										-- Storing Read data in MEMLAY_DATA1
 										Input_memEnblWr <= MEM_WRITE_EN;
-										Input_memAddr <= MEMLAY_DATA2;
-										--Input_memDataWr	<= "00000001";		--todomartin : Read the Opcode from FPGA through Input_swtDataIn[0..7]	
-						
+										Input_memAddr <= MEMLAY_DATA1;
 										Input_memDataWr <= Input_swtDataIn;
-											
-											
+										
 										Input_stOprtn <= CU_NOWAIT;
-										cntrState := cntrState + 1;
-							
+										cntrState := cntrState + 1;							
 									end if;
-								else
-									Input_stOprtn <= CU_NOWAIT; -- No need to wait if it is operator with one operand
-								end if;
-							when CU_EXECUTE_STATE =>
-								--do nothing
-								Input_stOprtn <= CU_NOWAIT;
-								cntrState := cntrState + 1;
-					
-							when CU_OUTPUT_STATE =>
-								--do nothing
-								Input_stOprtn <= CU_NOWAIT;
-								cntrState := cntrState + 1;
 								
-						end case;
-			
-				
-				when no_of_states =>
-						-- Empty
-						Input_stOprtn <= CU_NOWAIT;
+								when CU_READ_DATA2_STATE =>
+									-- Check if the opcode is invert, it does not need second operand
+									if(Input_swtOpcodIn /= OPCODE_INV) then										
+										if(Input_btnInputCnfrm = BTN_PRESSED) then										
+											-- Storing Read data in MEMLAY_DATA1
+											Input_memEnblWr <= MEM_WRITE_EN;
+											Input_memAddr <= MEMLAY_DATA2;
+											Input_memDataWr <= Input_swtDataIn;												
+												
+											Input_stOprtn <= CU_NOWAIT;
+											cntrState := cntrState + 1;								
+										end if;
+									else
+										Input_stOprtn <= CU_NOWAIT; -- No need to wait if it is operator with one operand
+									end if;
+									
+								when CU_EXECUTE_STATE =>
+									--do nothing
+									Input_stOprtn <= CU_NOWAIT;
+									cntrState := cntrState + 1;
+						
+								when CU_OUTPUT_STATE =>
+									--do nothing
+									Input_stOprtn <= CU_NOWAIT;
+									cntrState := cntrState + 1;
+									
+							end case;				
+					
+					when no_of_states =>
+							-- Empty
+							Input_stOprtn <= CU_NOWAIT;
 				end case;			
 				
 				
-			end if;
-			
-						
-						
-		end if;
+			end if;						
+		end if; -- rising edge of clocks ends
 	end process;
 	
 

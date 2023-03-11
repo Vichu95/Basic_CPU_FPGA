@@ -28,29 +28,29 @@ use work.Common_P.all;
 --------------------------
 entity ControlUnit_E is
 
-	port(	CU_rst				:	in typ_rst;
-			CU_clk				:	in typ_clk;
-			CU_clkDeb			:	in typ_clk;
+	port(	CU_rst					:	in typ_rst;
+			CU_clk					:	in typ_clk;
+			CU_clkDeb				:	in typ_clk;
 			CU_btnCnfrmRaw			:	in typ_in_btn;
 			CU_btnInputCnfrmRaw	:	in typ_in_btn;
-			CU_swtDataIn		:	in typ_databus;
-			CU_swtOpcodIn		:	in typ_opcod;
+			CU_swtDataIn			:	in typ_databus;
+			CU_swtOpcodIn			:	in typ_opcod;
 			
-			CU_ledDataInShw	:	out typ_databus;
-			CU_ledOpcodInShw	:	out typ_opcod;
-			CU_7segHEX0			:	out typ_out_7seg;
-			CU_7segHEX1			:	out typ_out_7seg;
-			CU_7segHEX2			:	out typ_out_7seg;
-			CU_7segHEX3			:	out typ_out_7seg;
-			CU_7segHEX4			:	out typ_out_7seg;
-			CU_7segHEX5			:	out typ_out_7seg;
-			CU_7segHEX6			:	out typ_out_7seg;
-			CU_7segHEX7			:	out typ_out_7seg;
+			CU_ledDataInShw		:	out typ_databus;
+			CU_ledOpcodInShw		:	out typ_opcod;
+			CU_7segHEX0				:	out typ_out_7seg;
+			CU_7segHEX1				:	out typ_out_7seg;
+			CU_7segHEX2				:	out typ_out_7seg;
+			CU_7segHEX3				:	out typ_out_7seg;
+			CU_7segHEX4				:	out typ_out_7seg;
+			CU_7segHEX5				:	out typ_out_7seg;
+			CU_7segHEX6				:	out typ_out_7seg;
+			CU_7segHEX7				:	out typ_out_7seg;
 			
-			UnusedLEDR			: out std_logic_vector (14 downto 8); -- red LEDs
-			UnusedLEDG			: out std_logic_vector (8 downto 0); -- green LEDs
-			UnusedButtons		: in std_logic; -- buttons
-			UnusedSwitches		: in std_logic_vector (14 downto 8)		-- slide switches
+			UnusedLEDR				: out std_logic_vector (14 downto 8); 	-- Red LEDs
+			UnusedLEDG				: out std_logic_vector (8 downto 0); 	-- Green LEDs
+			UnusedButtons			: in std_logic; 								-- Buttons
+			UnusedSwitches			: in std_logic_vector (14 downto 8)		-- Slide switches
 			);
 end entity ControlUnit_E;
 
@@ -59,10 +59,6 @@ end entity ControlUnit_E;
 --         Architecture
 -----------------------------
 architecture ControlUnit_A of ControlUnit_E is
-
-
-
-
 
 
 	--------------------
@@ -137,22 +133,15 @@ architecture ControlUnit_A of ControlUnit_E is
 begin
 	
 	
-	
-	
 	-- Default values for unused PINS
 	UnusedLEDR <= "0000000";
 	UnusedLEDG <= "000000000" ;
 
-	
-	
-	
-	
+		
 	----------------------
 	-- I N S T A N C E S
 	----------------------
-	
---	-- tobechecked
-		
+			
 	-- Memory entity --	
 	Memory_inst : entity work.Memory_E(Memory_A) 
 	port map(
@@ -250,7 +239,6 @@ begin
 
 	
 	------------------------------------------------------------------------------------------
-	
 	---------										P R O C E S S										---------
 	------------------------------------------------------------------------------------------
 	
@@ -292,8 +280,7 @@ begin
 				
 			when CU_FETCH_STATE =>
 				if(CU_btnCnfrm = BTN_PRESSED) then
-					--todo create a function check to see if 1 or 2 data is needed. Eithger in input module
-					
+				
 					CU_nxtState <= CU_READ_DATA1_STATE;		-- next state
 					
 					-- Control Signals
@@ -338,7 +325,7 @@ begin
 					
 					-- Trigger Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlALU <= CU_ENABLE; -- Trigger ALU Operation
+					CU_cntrlALU <= CU_ENABLE;	 	-- Trigger ALU Operation
 					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 					
 				end if;
@@ -352,7 +339,7 @@ begin
 					
 					-- Trigger Control Signals
 					CU_rstCntrlSig(CU_cntrlRdIn, CU_cntrlReg, CU_cntrlMem, CU_cntrlALU, CU_cntrlOut);
-					CU_cntrlOut <= CU_ENABLE; -- Trigger Output Operation
+					CU_cntrlOut <= CU_ENABLE; 		-- Trigger Output Operation
 					CU_cntrlMem <= CU_ENABLE;		-- Allow Memory Access
 				end if;
 				

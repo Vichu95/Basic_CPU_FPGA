@@ -65,6 +65,7 @@ begin
 			Memory_RAM <= (others=>(others=>'0'));
 		end if;
 		
+		-- Clock is not used as it unnecessarily adds another cycle of delay in writing to or reading from memory.
 		--if(rising_edge(Memory_clk)) then
 						
 			-- Perform the Memory only when control signal is true.

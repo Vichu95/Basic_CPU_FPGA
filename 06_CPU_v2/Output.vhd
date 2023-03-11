@@ -81,12 +81,12 @@ architecture Output_A of Output_E is
 	
 		-- Output_extract_bcd_digits(bcd, binx, bcd3, bcd2, bcd1);
 	procedure Output_extract_bcd_digits(
-										variable bcd 	: inout std_logic_vector (11 downto 0);
-										variable binx : inout std_logic_vector (7 downto 0);
+										variable bcd 			: inout std_logic_vector (11 downto 0);
+										variable binx 			: inout std_logic_vector (7 downto 0);
 										signal DataToExtract : in typ_databus;
-										variable bcd3 : out std_logic_vector (3 downto 0);
-										variable bcd2 : out std_logic_vector (3 downto 0);
-										variable bcd1 : out std_logic_vector (3 downto 0)
+										variable bcd3 			: out std_logic_vector (3 downto 0);
+										variable bcd2 			: out std_logic_vector (3 downto 0);
+										variable bcd1 			: out std_logic_vector (3 downto 0)
 										) is
 	begin				
 
@@ -114,7 +114,7 @@ architecture Output_A of Output_E is
 	
 	-- Output_conv_bcd_to_7seg(bcd_in, sevenHexDisplayout);
 	procedure Output_conv_bcd_to_7seg(
-										variable bcd_in 	: in std_logic_vector (3 downto 0);
+										variable bcd_in 				: in std_logic_vector (3 downto 0);
 										signal sevenHexDisplayout 	: out typ_out_7seg
 										) is
 	begin
@@ -176,9 +176,6 @@ begin
 		
 		if(Output_rst = RESET_PRESSED) then
 			Output_stOprtn <= CU_NOWAIT;
-						--todomartin : reset the 7segment
-						--todomartin : reset the leds
-			-- DONE
 			
 			-- Reset 7Segment 
 			Output_7segHEX0 <= typ_out_7seg_ini;
@@ -208,8 +205,7 @@ begin
 			case Output_crntCUState is
 		
 				when CU_IDLE_STATE =>
-						--todomartin : Display the CU State as '00 Id' in 7-Segments HEX 7 to 4
-					
+						-- Display the CU State as '00 Id' in 7-Segments HEX 7 to 4					
 						Output_7segHEX7 <= "1000000";
 						Output_7segHEX6 <= "1000000";
 						Output_7segHEX5 <= "1111001";
@@ -226,9 +222,9 @@ begin
 
 						
 				when CU_READ_OPCODE_STATE =>
-					--todomartin : Display the CU State as '01 OC' in 7-Segments HEX 7 to 4
-					--todomartin : Display the '= Opcode' in 7-Segments HEX 3 to 0 as per Output_swtOpcodIn[0..2]
-					--todomartin : Display the Output_swtOpcodIn[0..2] in Output_ledOpcodInShw[0..2] for binary
+					-- Display the CU State as '01 OC' in 7-Segments HEX 7 to 4
+					-- Display the '= Opcode' in 7-Segments HEX 3 to 0 as per Output_swtOpcodIn[0..2]
+					-- Display the Output_swtOpcodIn[0..2] in Output_ledOpcodInShw[0..2] for binary
 					
 						Output_7segHEX7 <= "1000000";
 						Output_7segHEX6 <= "1111001";
@@ -287,8 +283,7 @@ begin
 					end case;
 				
 				when CU_FETCH_STATE =>	
-					--todomartin : Display the CU State as '02 FE' in 7-Segments HEX 7 to 4
-					
+					-- Display the CU State as '02 FE' in 7-Segments HEX 7 to 4					
 						Output_7segHEX7 <= "1000000";
 						Output_7segHEX6 <= "0100100";
 						Output_7segHEX5 <= "0001110";
@@ -299,12 +294,9 @@ begin
 						Output_7segHEX0 <= "1111111";
 				
 				when CU_READ_DATA1_STATE =>
-					--todomartin : Display the CU State as ''03 d1' in 7-Segments HEX 7 to 4
-					--todomartin : Display the '= data 1' in 7-Segments HEX3 to 0 as per Output_swtDataIn[0..7]
-					--todomartin : Display the Output_swtDataIn[0..7] in Output_ledDataInShw[0..7] for binary
-					
-				
-					
+					-- Display the CU State as ''03 d1' in 7-Segments HEX 7 to 4
+					-- Display the '= data 1' in 7-Segments HEX3 to 0 as per Output_swtDataIn[0..7]
+					-- Display the Output_swtDataIn[0..7] in Output_ledDataInShw[0..7] for binary					
 						Output_7segHEX7 <= "1000000";
 						Output_7segHEX6 <= "0110000";
 						Output_7segHEX5 <= "0100001";
@@ -328,8 +320,7 @@ begin
 						
 					
 				when CU_READ_DATA2_STATE =>
-					-- Check if the opcode is invert, it does not need second operand
-					
+					-- Check if the opcode is invert, it does not need second operand					
 					Output_7segHEX7 <= "1000000";
 					Output_7segHEX6 <= "0011001";
 					Output_7segHEX5 <= "0100001";
@@ -343,16 +334,13 @@ begin
 					Output_ledDataInShw	<= "00000000";	
 					
 					if(Output_swtOpcodIn(OPCODE_WIDTH downto 0) /= OPCODE_INV) then
-						--todomartin : Display the CU State as ''04 d2' in 7-Segments HEX 7 to 4
-						--todomartin : Display the '= data 2' in 7-Segments HEX3 to 0 as per Output_swtDataIn[0..7]
-						--todomartin : Display the Output_swtDataIn[0..7] in Output_ledDataInShw[0..7] for binary
+						-- Display the CU State as ''04 d2' in 7-Segments HEX 7 to 4
+						-- Display the '= data 2' in 7-Segments HEX3 to 0 as per Output_swtDataIn[0..7]
+						-- Display the Output_swtDataIn[0..7] in Output_ledDataInShw[0..7] for binary
 						
-						--Output_7segHEX5 <= "0100001";
-						--Output_7segHEX4 <= "0100100";
 						Output_7segHEX3 <= "0110111";	
 						
-						Output_ledDataInShw	<= Output_swtDataIn;	
-						
+						Output_ledDataInShw	<= Output_swtDataIn;							
 						
 						------------ BCD Conversion--------------
 						Output_extract_bcd_digits(bcd, binx, Output_swtDataIn, bcd3, bcd2, bcd1);
@@ -369,8 +357,7 @@ begin
 									
 					end if;
 				when CU_EXECUTE_STATE =>
-					--todomartin : Display the CU State as '05 EC' in 7-Segments HEX 7 to 4
-		
+					-- Display the CU State as '05 EC' in 7-Segments HEX 7 to 4		
 					Output_7segHEX7 <= "1000000";
 					Output_7segHEX6 <= "0010010";
 					Output_7segHEX5 <= "0000110";
@@ -384,54 +371,46 @@ begin
 					
 					-- Perform the Output only when control signal is true.
 					if(Output_cntrlCU_enblOut = CU_ENABLE) then
-						--todomartin : Display the CU State as '06 OP' in 7-Segments HEX 7 to 4					
+						-- Display the CU State as '06 OP' in 7-Segments HEX 7 to 4					
+						Output_7segHEX7 <= "1000000";
+						Output_7segHEX6 <= "0000010";
+						Output_7segHEX5 <= "1000000";
+						Output_7segHEX4 <= "0001100";
+						Output_7segHEX3 <= "0110111";					
 					
-					
-					Output_7segHEX7 <= "1000000";
-					Output_7segHEX6 <= "0000010";
-					Output_7segHEX5 <= "1000000";
-					Output_7segHEX4 <= "0001100";
-					Output_7segHEX3 <= "0110111";
-					
-					
-						-- Output sets the status as cpu is in use and should be holded
-						
+						-- Output sets the status as cpu is in use and should be holded						
 						Output_stOprtn <= CU_WAIT;
 						
 						
 						case cntrState is
 				
-						when 0 =>
-							-- Req to Read Stored MEMLAY_REG_R1
-							Output_memEnblWr <= MEM_READ_EN;
-							Output_memAddr <= MEMLAY_REG_R1;
+							when 0 =>
+								-- Req to Read Stored MEMLAY_REG_R1
+								Output_memEnblWr <= MEM_READ_EN;
+								Output_memAddr <= MEMLAY_REG_R1;
+								
+							when 1 =>
+								-- Reading Stored MEMLAY_REG_R1
+								temp_mem <= Output_memDataRd;
+								Output_ledDataInShw <= Output_memDataRd;
+								
+							when 2 =>
+								-- Display the read value as '= output' in 7-Segments HEX 3 to 0							
 							
-						when 1 =>
-							-- Reading Stored MEMLAY_REG_R1
-							temp_mem <= Output_memDataRd;
-							Output_ledDataInShw <= Output_memDataRd;
-							
-						when 2 =>
-							--todomartin : Display the read value as '= output' in 7-Segments HEX 3 to 0					
-						
-						
-							------------ BCD Conversion--------------
-							Output_extract_bcd_digits(bcd, binx, temp_mem, bcd3, bcd2, bcd1);
-							
-							------------ ONES -------------------------
-							Output_conv_bcd_to_7seg(bcd1, Output_7segHEX0);
+								------------ BCD Conversion--------------
+								Output_extract_bcd_digits(bcd, binx, temp_mem, bcd3, bcd2, bcd1);
+								
+								------------ ONES -------------------------
+								Output_conv_bcd_to_7seg(bcd1, Output_7segHEX0);
 
-							------------ TENS -------------------------
-							Output_conv_bcd_to_7seg(bcd2, Output_7segHEX1);
+								------------ TENS -------------------------
+								Output_conv_bcd_to_7seg(bcd2, Output_7segHEX1);
 
-							------------ HUNDREDS ---------------------
-							Output_conv_bcd_to_7seg(bcd3, Output_7segHEX2);	
+								------------ HUNDREDS ---------------------
+								Output_conv_bcd_to_7seg(bcd3, Output_7segHEX2);	
 							
-							
-							
-						
-						when no_of_states =>
-								-- Empty
+							when no_of_states =>
+									-- Empty
 						end case;
 						
 						if (cntrState < no_of_states) then
